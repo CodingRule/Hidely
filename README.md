@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/screenshot.png" width="576" alt="The Hidely window: a list of open windows, two of them marked as hidden from capture, each with Pin and Hide buttons" />
+  <img src="docs/images/demo.gif" width="900" alt="Screen recording: a music player sits next to Hidely. Clicking Hide makes the music player vanish from the recording, and clicking Show brings it back." />
 </p>
 
 You are sharing your screen in a meeting and need to check your password manager, a private chat
@@ -51,6 +51,10 @@ and always puts things back the way it found them.
 - **Always restores.** Hidden windows are un-hidden when Hidely quits or crashes. If it is killed outright, the next launch restores them from a journal.
 - **Light and dark.** Follows your Windows theme.
 - **CLI included.** `hidely-cli hide notepad` for scripts and automation.
+
+<p align="center">
+  <img src="docs/images/screenshot.png" width="576" alt="The Hidely window: a list of open windows, two of them marked as hidden from capture, each with Pin and Hide buttons" />
+</p>
 
 ## Download
 
