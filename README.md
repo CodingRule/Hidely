@@ -16,7 +16,16 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license" /></a>
 </p>
 
----
+<p align="center">
+  <a href="https://github.com/CodingRule/Hidely/releases/latest"><strong>Download</strong></a> ·
+  <a href="https://codingrule.github.io/Hidely/"><strong>Test page</strong></a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#roadmap">Roadmap</a>
+</p>
+
+<p align="center">
+  <img src="docs/images/screenshot.png" width="576" alt="The Hidely window: a list of open windows, two of them marked as hidden from capture, each with Pin and Hide buttons" />
+</p>
 
 You are sharing your screen in a meeting and need to check your password manager, a private chat
 or a terminal. Normally everyone watching sees it too. With Hidely, you pick the windows that are
@@ -26,9 +35,9 @@ Tool and Print Screen, while staying fully visible and usable on your own monito
 Hidely lives in the system tray, needs no driver and no administrator rights for ordinary apps,
 and always puts things back the way it found them.
 
-> **Built on [DWMShield](https://github.com/ahossu/DWMShield) by [@ahossu](https://github.com/ahossu).**
-> He discovered the technique this project grew out of, and his kernel driver is included in
-> [`driver/`](driver/) with permission, under its own MIT licence. Thank you, hossu.
+> **Built on [DWMShield](https://github.com/ahossu/DWMShield) by Alexandru Hossu ([@ahossu](https://github.com/ahossu)).**
+> Alexandru Hossu discovered the technique this project grew out of, and his kernel driver is
+> included in [`driver/`](driver/) with permission, under its own MIT licence.
 
 ## Features
 
@@ -182,8 +191,8 @@ exam proctoring or workplace policy, or on machines you are not allowed to modif
 
 ## Credits
 
-- [DWMShield](https://github.com/ahossu/DWMShield) by [@ahossu](https://github.com/ahossu), who
-  discovered the technique and whose kernel driver is included in [`driver/`](driver/) with
+- [DWMShield](https://github.com/ahossu/DWMShield) by Alexandru Hossu
+  ([@ahossu](https://github.com/ahossu)), who discovered the technique and whose kernel driver is included in [`driver/`](driver/) with
   permission, under its own MIT licence. Hidely exists because of his work.
 - [Tauri](https://tauri.app) for the app shell.
 
