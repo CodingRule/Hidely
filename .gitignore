@@ -1,0 +1,13 @@
+target/
+node_modules/
+src-tauri/gen/
+.vs/
+.claude/
+
+# local planning notes
+app.md
+
+# driver build output
+*.sys
+*.pdb
+x64/

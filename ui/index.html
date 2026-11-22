@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hidely</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Windows</h1>
+        <p id="summary">Nothing is hidden.</p>
+      </div>
+      <button id="show-all" type="button">Show everything</button>
+    </header>
+
+    <main>
+      <ul id="windows" aria-label="Open windows"></ul>
+      <p id="empty" hidden>No other windows are open.</p>
+    </main>
+
+    <footer>
+      <p id="status" role="status"></p>
+      <dl id="hotkeys"></dl>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>

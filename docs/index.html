@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hidely capture test</title>
+    <meta name="description" content="Share your screen with this page to see exactly what a viewer sees while Hidely is hiding windows." />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f6f7;
+        --surface: #ffffff;
+        --border: #dcdde2;
+        --text: #1b1c1f;
+        --muted: #5f636c;
+        --accent: #c62f33;
+        --accent-text: #ffffff;
+        --stage: #101114;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #17181b;
+          --surface: #222327;
+          --border: #36383e;
+          --text: #ececef;
+          --muted: #a3a7b0;
+          --accent: #e5484d;
+          --stage: #0b0c0e;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 40px 16px 64px;
+      }
+      h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.2; }
+      h2 { margin: 32px 0 8px; font-size: 18px; }
+      p { margin: 0 0 12px; }
+      .lede { color: var(--muted); max-width: 62ch; }
+      .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 12px; }
+      button {
+        font: inherit;
+        font-weight: 600;
+        padding: 9px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+      }
+      button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+      button:disabled { opacity: 0.5; cursor: default; }
+      button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      #status { min-height: 1.5em; color: var(--muted); }
+      #status.error { color: var(--accent); }
+      .stage {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: var(--stage);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      video, .stage p {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      video { object-fit: contain; }
+      .stage p {
+        display: grid;
+        place-items: center;
+        margin: 0;
+        padding: 16px;
+        text-align: center;
+        color: #a3a7b0;
+      }
+      ol { margin: 0; padding-left: 22px; }
+      li { margin-bottom: 6px; }
+      #snapshots { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+      figure { margin: 0; }
+      figure img { display: block; width: 100%; border: 1px solid var(--border); border-radius: 8px; }
+      figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+      footer { margin-top: 40px; font-size: 14px; color: var(--muted); }
+      a { color: inherit; }
+      kbd {
+        font: 600 13px/1 ui-monospace, Consolas, monospace;
+        padding: 2px 6px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: var(--surface);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>See what your viewers see</h1>
+      <p class="lede">
+        Share your screen with this page and it plays the capture straight back to you. Windows hidden
+        with Hidely should be missing from the picture below, even though you can still see them on
+        your monitor.
+      </p>
+
+      <div class="controls">
+        <button id="start" class="primary" type="button">Start screen share</button>
+        <button id="snapshot" type="button" disabled>Take snapshot</button>
+        <button id="stop" type="button" disabled>Stop</button>
+      </div>
+      <p id="status" role="status">Nothing is being captured.</p>
+
+      <div class="stage">
+        <p id="placeholder">Your shared screen will appear here.</p>
+        <video id="preview" autoplay muted playsinline hidden></video>
+      </div>
+
+      <h2>How to test</h2>
+      <ol>
+        <li>Press <strong>Start screen share</strong> and pick <strong>Entire screen</strong>.</li>
+        <li>Move this browser window aside so another app is visible in the preview.</li>
+        <li>In Hidely, press <strong>Hide</strong> next to that app (or pin it and press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd>).</li>
+        <li>The app should vanish from the preview while staying on your real screen. Take a snapshot before and after to compare.</li>
+        <li>Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> and it should come back.</li>
+      </ol>
+
+      <h2>Snapshots</h2>
+      <p id="no-snapshots" class="lede">Snapshots you take appear here so you can compare before and after.</p>
+      <div id="snapshots"></div>
+
+      <footer>
+        The capture never leaves this page: nothing is recorded, uploaded or stored, and snapshots
+        disappear when you close the tab. Part of
+        <a href="https://github.com/CodingRule/Hidely">Hidely</a>.
+      </footer>
+    </main>
+
+    <script>
+      const video = document.getElementById("preview");
+      const placeholder = document.getElementById("placeholder");
+      const status = document.getElementById("status");
+      const startButton = document.getElementById("start");
+      const stopButton = document.getElementById("stop");
+      const snapshotButton = document.getElementById("snapshot");
+      const snapshots = document.getElementById("snapshots");
+      let stream = null;
+
+      function setStatus(text, isError = false) {
+        status.textContent = text;
+        status.classList.toggle("error", isError);
+      }
+
+      function setCapturing(capturing) {
+        video.hidden = !capturing;
+        placeholder.hidden = capturing;
+        startButton.disabled = capturing;
+        stopButton.disabled = !capturing;
+        snapshotButton.disabled = !capturing;
+      }
+
+      function stop() {
+        if (stream) stream.getTracks().forEach((track) => track.stop());
+        stream = null;
+        video.srcObject = null;
+        setCapturing(false);
+        setStatus("Capture stopped.");
+      }
+
+      startButton.addEventListener("click", async () => {
+        if (!navigator.mediaDevices?.getDisplayMedia) {
+          setStatus("This browser can't share the screen. Try a current Chrome, Edge or Firefox on desktop.", true);
+          return;
+        }
+        try {
+          stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        } catch (error) {
+          setStatus(
+            error.name === "NotAllowedError"
+              ? "Screen sharing was cancelled. Press Start to try again."
+              : `Couldn't start screen sharing: ${error.message}`,
+            true
+          );
+          return;
+        }
+        video.srcObject = stream;
+        const track = stream.getVideoTracks()[0];
+        track.addEventListener("ended", stop);
+        const surface = track.getSettings().displaySurface;
+        setCapturing(true);
+        setStatus(
+          surface && surface !== "monitor"
+            ? `Sharing a single ${surface}. Share your entire screen to test several windows at once.`
+            : "Sharing. This is exactly what a viewer would see."
+        );
+      });
+
+      stopButton.addEventListener("click", stop);
+
+      snapshotButton.addEventListener("click", () => {
+        if (!video.videoWidth) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        const figure = document.createElement("figure");
+        const image = document.createElement("img");
+        image.src = canvas.toDataURL("image/png");
+        image.alt = "Snapshot of the shared screen";
+        const caption = document.createElement("figcaption");
+        caption.textContent = new Date().toLocaleTimeString();
+        figure.append(image, caption);
+        snapshots.prepend(figure);
+        document.getElementById("no-snapshots").hidden = true;
+      });
+    </script>
+  </body>
+</html>
