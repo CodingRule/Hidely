@@ -4,6 +4,22 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- New look: a borderless, rounded, see-through black window with its own title bar.
+- The window list is now a table with App and Status columns.
+
+### Added
+
+- Search box, and sidebar filters for All, Pinned and Hidden windows with live counts.
+- A status pill in the title bar showing how many windows are hidden.
+
+### Removed
+
+- The light theme. Hidely is dark only for now.
+
 ## [0.1.1] - 2026-11-22
 
 ### Added

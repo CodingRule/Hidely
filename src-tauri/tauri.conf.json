@@ -12,10 +12,13 @@
       {
         "label": "main",
         "title": "Hidely",
-        "width": 520,
-        "height": 640,
-        "minWidth": 400,
-        "minHeight": 320
+        "width": 952,
+        "height": 612,
+        "minWidth": 620,
+        "minHeight": 460,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false
       }
     ],
     "security": {
@@ -24,7 +27,13 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"]
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.ico"
+    ]
   }
 }
