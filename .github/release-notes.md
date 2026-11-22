@@ -1,8 +1,11 @@
 Hidely hides any window from screen sharing, recordings and screenshots while it stays visible to you.
 
-## What's new in 0.1.1
+## What's new in 0.1.2
 
-- **Hidely can hide itself.** Its own window is now first in the list, so you can keep it out of your share and pin it like any other window.
+- **New look.** A borderless, rounded, see-through black window with its own title bar.
+- **Search and filters.** Find a window by name, or switch between All, Pinned and Hidden.
+- **Clearer status.** A table with App and Status columns, and a pill in the title bar showing how many windows are hidden.
+- The light theme is gone for now; Hidely is dark only.
 
 ## Install
 
@@ -10,9 +13,9 @@ Pick one of the downloads below. Neither needs Rust, Node or any other developer
 
 | File | What it is |
 |---|---|
-| **Hidely_0.1.1_x64-setup.exe** | Installer. Adds Hidely to the Start menu and installs Microsoft's WebView2 runtime for you if it is missing. Recommended. |
-| **Hidely_0.1.1_x64-portable.exe** | Single file, no install. Just run it. Needs the WebView2 runtime, which Windows 11 already has. |
-| **hidely-cli_0.1.1_x64.exe** | Optional command-line tool for scripts. |
+| **Hidely_0.1.2_x64-setup.exe** | Installer. Adds Hidely to the Start menu and installs Microsoft's WebView2 runtime for you if it is missing. Recommended. |
+| **Hidely_0.1.2_x64-portable.exe** | Single file, no install. Just run it. Needs the WebView2 runtime, which Windows 11 already has. |
+| **hidely-cli_0.1.2_x64.exe** | Optional command-line tool for scripts. |
 
 Requires Windows 10 version 2004 or later, 64-bit. Hidely is Windows-only: it relies on a Windows feature that macOS and Linux don't have.
 
