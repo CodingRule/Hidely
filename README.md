@@ -24,6 +24,12 @@
 </p>
 
 <p align="center">
+  <strong>Built on <a href="https://github.com/ahossu/DWMShield">DWMShield</a> by Alexandru Hossu (<a href="https://github.com/ahossu">@ahossu</a>).</strong><br />
+  Alexandru Hossu discovered the technique this project grew out of, and his kernel driver is<br />
+  included in <a href="driver/"><code>driver/</code></a> with permission, under its own MIT licence.
+</p>
+
+<p align="center">
   <img src="docs/images/screenshot.png" width="576" alt="The Hidely window: a list of open windows, two of them marked as hidden from capture, each with Pin and Hide buttons" />
 </p>
 
@@ -34,10 +40,6 @@ Tool and Print Screen, while staying fully visible and usable on your own monito
 
 Hidely lives in the system tray, needs no driver and no administrator rights for ordinary apps,
 and always puts things back the way it found them.
-
-> **Built on [DWMShield](https://github.com/ahossu/DWMShield) by Alexandru Hossu ([@ahossu](https://github.com/ahossu)).**
-> Alexandru Hossu discovered the technique this project grew out of, and his kernel driver is
-> included in [`driver/`](driver/) with permission, under its own MIT licence.
 
 ## Features
 
