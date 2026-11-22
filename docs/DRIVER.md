@@ -5,9 +5,9 @@ hiding to windows the user-mode method can't reach (protected processes).
 
 ## What is in `driver/`
 
-`driver/HideWindow.c` and `driver/protect.c` are the unmodified
+`driver/HideWindow.c` and `driver/protect.c` are the
 [DWMShield](https://github.com/ahossu/DWMShield) sources by Alexandru Hossu, included with
-permission under `driver/LICENCE`. The driver receives a window handle over an IOCTL and calls
+permission under `driver/LICENCE` and maintained here together with him. The driver receives a window handle over an IOCTL and calls
 the internal `win32kfull!GreProtectSpriteContent(0, hwnd, 1, 0x11)`, which is what
 `SetWindowDisplayAffinity` ends up calling.
 

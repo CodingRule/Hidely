@@ -34,7 +34,7 @@ npm run dev
 | `src-tauri/` | The desktop app: tray, hotkeys, HUD and the commands the UI calls |
 | `ui/` | The app's front end in plain HTML, CSS and JavaScript, with no build step |
 | `docs/` | The screen-share test page (served by GitHub Pages) and driver notes |
-| `driver/` | Upstream DWMShield sources. Please don't modify these. |
+| `driver/` | The DWMShield kernel driver, maintained here together with its author, Alexandru Hossu. See [docs/DRIVER.md](docs/DRIVER.md) before changing it. |
 
 ## Before you open a pull request
 
