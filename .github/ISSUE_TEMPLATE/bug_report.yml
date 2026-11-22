@@ -1,0 +1,42 @@
+name: Bug report
+description: Something doesn't work the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Which app were you trying to hide?
+      description: Also say if it runs as administrator.
+      placeholder: e.g. Spotify, not elevated
+  - type: input
+    id: capture
+    attributes:
+      label: Where was the window still visible?
+      placeholder: e.g. Zoom, OBS, Snipping Tool, the Hidely test page
+  - type: textarea
+    id: message
+    attributes:
+      label: Message shown by Hidely
+      description: Copy the text from the bottom of the Hidely window, if there was any.
+  - type: input
+    id: version
+    attributes:
+      label: Hidely version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Press Win + R, type winver, and copy the version and build.
+      placeholder: e.g. Windows 11 24H2 (build 26100)
+    validations:
+      required: true

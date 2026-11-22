@@ -173,15 +173,11 @@ driver/              DWMShield kernel driver, unmodified (see below)
 
 ## Contributing
 
-Issues and pull requests are welcome. Before opening a pull request:
+Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up,
+what to check before a pull request, and where things live. Changes are listed in the
+[changelog](CHANGELOG.md).
 
-```powershell
-cargo test --workspace
-cargo build --workspace
-```
-
-If you change how windows are hidden, check the result on the test page, because that is the
-only thing that proves a viewer can't see it.
+Found a security problem? Please report it privately as described in [SECURITY.md](SECURITY.md).
 
 ## Responsible use
 
