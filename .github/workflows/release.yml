@@ -1,0 +1,56 @@
+name: Release
+
+# Push a tag like v0.1.0 to build the installer and publish a GitHub Release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check the tag matches the app version
+        shell: bash
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match app version $version" >&2
+            exit 1
+          fi
+
+      - name: Test
+        run: cargo test --workspace
+
+      - name: Build installer
+        run: |
+          npm ci
+          npm run tauri build
+
+      - name: Build CLI
+        run: cargo build --release -p hidely-cli
+
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          cp target/release/Hidely.exe "Hidely_${version}_x64-portable.exe"
+          cp target/release/hidely-cli.exe "hidely-cli_${version}_x64.exe"
+          gh release create "$GITHUB_REF_NAME" \
+            target/release/bundle/nsis/*-setup.exe \
+            Hidely_*_x64-portable.exe \
+            hidely-cli_*_x64.exe \
+            --title "Hidely $GITHUB_REF_NAME" \
+            --notes-file .github/release-notes.md

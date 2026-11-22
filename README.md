@@ -26,6 +26,10 @@ Tool and Print Screen, while staying fully visible and usable on your own monito
 Hidely lives in the system tray, needs no driver and no administrator rights for ordinary apps,
 and always puts things back the way it found them.
 
+> **Built on [DWMShield](https://github.com/ahossu/DWMShield) by [@ahossu](https://github.com/ahossu).**
+> He discovered the technique this project grew out of, and his kernel driver is included in
+> [`driver/`](driver/) with permission, under its own MIT licence. Thank you, hossu.
+
 ## Features
 
 - **Window list.** Every open window with its icon and title, and a Hide button next to each.
@@ -37,7 +41,27 @@ and always puts things back the way it found them.
 - **Light and dark.** Follows your Windows theme.
 - **CLI included.** `hidely-cli hide notepad` for scripts and automation.
 
-## Try it
+## Download
+
+**[Download the latest release](https://github.com/CodingRule/Hidely/releases/latest)** for
+Windows 10 (version 2004 or later) and Windows 11, 64-bit. No Rust, Node or other developer tools
+needed.
+
+- **`Hidely_x.y.z_x64-setup.exe`** is the installer. It sets up everything Hidely needs,
+  including Microsoft's WebView2 runtime if your PC doesn't have it.
+- **`Hidely_x.y.z_x64-portable.exe`** is a single file you can run without installing.
+
+Hidely is Windows-only. It is built on a Windows capture-exclusion feature that macOS and Linux
+don't offer, so there is nothing to build or run on those systems.
+
+The downloads are not code-signed yet, so Windows shows a "Windows protected your PC" warning the
+first time. Choose **More info**, then **Run anyway**.
+
+Then open the **[test page](https://codingrule.github.io/Hidely/)**, press **Start screen share**,
+choose **Entire screen**, and hide a window in Hidely. It vanishes from the preview and stays on
+your monitor. Nothing from the test page is recorded or uploaded.
+
+## Build from source
 
 ### 1. Build and run
 
@@ -54,18 +78,22 @@ npm run dev
 
 `npm run build` produces an installer in `target/release/bundle/nsis/`.
 
-### 2. See it work
+### 2. Run the test page locally
 
-Hidely ships with a test page that asks to share your screen and plays the capture straight back
-to you, so you can see exactly what a viewer would see.
+The test page lives in [`docs/index.html`](docs/index.html). Screen sharing needs a secure
+origin, so serve it instead of opening the file:
 
 ```powershell
 npx http-server docs -p 4173
 ```
 
-Open <http://localhost:4173>, press **Start screen share**, choose **Entire screen**, then hide a
-window in Hidely. It vanishes from the preview and stays on your monitor. Nothing from the test
-page is recorded or uploaded.
+Then open <http://localhost:4173>.
+
+### 3. Cut a release
+
+Bump the version in `src-tauri/tauri.conf.json` and `Cargo.toml`, update
+`.github/release-notes.md`, then push a tag such as `v0.2.0`. The release workflow builds the
+installer and publishes it.
 
 ## Using Hidely
 
@@ -154,9 +182,9 @@ exam proctoring or workplace policy, or on machines you are not allowed to modif
 
 ## Credits
 
-- [DWMShield](https://github.com/ahossu/DWMShield) by [@ahossu](https://github.com/ahossu), which
-  inspired this project and whose kernel driver is included in [`driver/`](driver/) with
-  permission, under its own MIT licence.
+- [DWMShield](https://github.com/ahossu/DWMShield) by [@ahossu](https://github.com/ahossu), who
+  discovered the technique and whose kernel driver is included in [`driver/`](driver/) with
+  permission, under its own MIT licence. Hidely exists because of his work.
 - [Tauri](https://tauri.app) for the app shell.
 
 ## License
