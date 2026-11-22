@@ -1520,7 +1520,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hidely-app"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "hidely-core",
@@ -1534,14 +1534,14 @@ dependencies = [
 
 [[package]]
 name = "hidely-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "hidely-core",
 ]
 
 [[package]]
 name = "hidely-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "windows-sys 0.59.0",
 ]
