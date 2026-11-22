@@ -4,6 +4,13 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Hidely's own window now appears first in the list, so it can be hidden from capture and pinned
+  like any other window.
+
 ## [0.1.0] - 2026-11-22
 
 First release.

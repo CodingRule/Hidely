@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
 use base64::Engine;
-use hidely_core::{icon_rgba, is_window, list_windows, overlay, Cloaker};
+use hidely_core::{icon_rgba, is_window, list_windows, overlay, Cloaker, WindowInfo};
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -73,13 +73,26 @@ fn parse_hwnd(hwnd: &str) -> Result<isize, String> {
 // ---------------------------------------------------------------- commands
 
 #[tauri::command]
-fn windows(state: State<AppState>) -> Vec<WindowDto> {
+fn windows(app: AppHandle, state: State<AppState>) -> Vec<WindowDto> {
     let mut cloaker = state.cloaker();
     cloaker.prune();
     let mut pinned = lock(&state.pinned);
     pinned.retain(|&hwnd| is_window(hwnd));
-    list_windows(Some(std::process::id()))
-        .into_iter()
+
+    // Hidely's own window comes first, so it can be hidden from capture like any other.
+    // (Its HUD is always hidden and never listed.)
+    let own = app
+        .get_webview_window("main")
+        .and_then(|window| window.hwnd().ok())
+        .map(|hwnd| WindowInfo {
+            hwnd: hwnd.0 as isize,
+            title: "Hidely (this window)".to_string(),
+            pid: std::process::id(),
+            process: "Hidely".to_string(),
+        });
+
+    own.into_iter()
+        .chain(list_windows(Some(std::process::id())))
         .map(|w| WindowDto {
             hwnd: w.hwnd.to_string(),
             hidden: cloaker.is_hidden(w.hwnd),

@@ -47,6 +47,7 @@ and always puts things back the way it found them.
 - **Pin and hotkey.** Pin the windows you care about, then press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> to hide or show them all at once.
 - **Panic key.** <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> un-hides everything instantly.
 - **Tray icon.** The ghost turns red while anything is hidden, so you always know your state.
+- **Hides itself too.** Hidely's own window is first in the list, so you can keep it out of your share as well.
 - **Private HUD.** A small on-screen confirmation that is itself excluded from capture, so viewers never see it.
 - **Always restores.** Hidden windows are un-hidden when Hidely quits or crashes. If it is killed outright, the next launch restores them from a journal.
 - **Light and dark.** Follows your Windows theme.
