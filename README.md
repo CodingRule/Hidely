@@ -132,6 +132,7 @@ installer and publishes it.
 | End the session | Click **End session**, or press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> again |
 | Make everything capturable again, now | Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> |
 | Change the shortcuts | Click **Change shortcuts** at the bottom left |
+| Back up or edit profiles by hand | Copy `%LOCALAPPDATA%\Hidely\settings.json`. The format is described in [docs/SETTINGS.md](docs/SETTINGS.md) |
 | Keep it out of the way | Close the window. Hidely stays in the tray. |
 | Quit | Right-click the tray icon and choose **Quit** |
 
@@ -180,7 +181,7 @@ ui/                  Front end (plain HTML, CSS, JS)
 src-tauri/           Tauri 2 app: tray, shortcuts, HUD, commands
 crates/hidely-core/  The engine: windows, sessions, profiles, capture exclusion (Win32)
 crates/hidely-cli/   Command-line front end over the same engine
-docs/                Test page, compatibility record, driver notes
+docs/                Test page, compatibility record, settings file, driver notes
 driver/              DWMShield kernel driver (optional, not built; see below)
 ```
 
