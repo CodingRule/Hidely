@@ -12,10 +12,10 @@
       {
         "label": "main",
         "title": "Hidely",
-        "width": 952,
-        "height": 612,
-        "minWidth": 620,
-        "minHeight": 460,
+        "width": 1040,
+        "height": 700,
+        "minWidth": 700,
+        "minHeight": 520,
         "decorations": false,
         "transparent": true,
         "shadow": false

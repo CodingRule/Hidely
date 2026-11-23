@@ -4,6 +4,40 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Privacy sessions with Start and End. Ending a session makes every window Hidely changed
+  capturable again and reports any it could not restore.
+- Meeting profiles: named sets of apps, with create, rename, duplicate, delete and select.
+  Starting a session shows which apps it will affect and which are not running.
+- During a session with a profile, windows those apps open later are protected as well.
+- Per-window status: Unprotected, Applying, Protection applied, Unsupported or Error, shown
+  with words and a distinct icon, with the reason for failures.
+- Shortcuts can be changed. A combination that is taken is refused and the previous one
+  keeps working. Restore defaults from the window or the tray.
+- Tray menu: status line, start or end session, make everything capturable again.
+- Optional local diagnostics report, shown in full before saving.
+- The mouse pointer stays a plain arrow while it is over a protected window, so its shape
+  cannot reveal the window in a capture.
+- `hidely-cli watch` runs a session from a terminal.
+- `Hidely.exe --toggle-session` and `--end-session` control the running app from a script.
+- Test page: a harmless test window to protect, and a clear statement of what the preview
+  does and does not verify.
+- [Compatibility record](docs/COMPATIBILITY.md) of tested capture apps and measured behaviour.
+
+### Changed
+
+- "Protection applied" is only reported after Windows confirms the setting by reading it back.
+- A window that an app already excludes from capture itself is left alone and never
+  "restored" by Hidely.
+- Recovery records now include the process start time, so a reused window handle or process
+  id can never cause an unrelated window to be changed.
+- Hide and Show are now Protect and Unprotect. The hide/show shortcut now starts and ends a
+  session.
+- The README no longer lists capture apps that have not been tested.
+
 ## [0.1.2] - 2026-11-22
 
 ### Changed

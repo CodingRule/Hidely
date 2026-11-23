@@ -3,13 +3,15 @@ use std::mem::{size_of, zeroed};
 use std::path::Path;
 use std::ptr::null_mut;
 
-use windows_sys::Win32::Foundation::{CloseHandle, BOOL, HWND, LPARAM};
+use windows_sys::Win32::Foundation::{CloseHandle, BOOL, FILETIME, HWND, LPARAM};
 use windows_sys::Win32::Graphics::Dwm::DwmGetWindowAttribute;
 use windows_sys::Win32::Graphics::Gdi::{
     CreateCompatibleDC, CreateDIBSection, DeleteDC, DeleteObject, SelectObject, BITMAPINFO,
     BITMAPINFOHEADER,
 };
-use windows_sys::Win32::System::Threading::{OpenProcess, QueryFullProcessImageNameW};
+use windows_sys::Win32::System::Threading::{
+    GetProcessTimes, OpenProcess, QueryFullProcessImageNameW,
+};
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     DrawIconEx, EnumWindows, GetClassLongPtrW, GetWindow, GetWindowDisplayAffinity,
     GetWindowLongPtrW, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow,
@@ -28,8 +30,12 @@ pub struct WindowInfo {
     pub hwnd: isize,
     pub title: String,
     pub pid: u32,
-    /// Executable name without extension, e.g. `notepad`.
+    /// Executable name without extension, e.g. `notepad`. For display.
     pub process: String,
+    /// Executable file name in lower case, e.g. `notepad.exe`. Empty if it could not be read.
+    pub exe: String,
+    /// Full path of the executable. Empty if it could not be read.
+    pub path: String,
 }
 
 pub fn is_window(hwnd: isize) -> bool {
@@ -64,7 +70,15 @@ pub fn list_windows(exclude_pid: Option<u32>) -> Vec<WindowInfo> {
                 return None;
             }
             let title = window_title(hwnd)?;
-            Some(WindowInfo { hwnd, title, pid, process: process_name(pid) })
+            let identity = process_identity(pid);
+            Some(WindowInfo {
+                hwnd,
+                title,
+                pid,
+                process: identity.name,
+                exe: identity.exe,
+                path: identity.path,
+            })
         })
         .collect()
 }
@@ -116,24 +130,50 @@ fn window_title(hwnd: isize) -> Option<String> {
     }
 }
 
-fn process_name(pid: u32) -> String {
+/// What we can tell about the program behind a process id.
+pub struct ProcessIdentity {
+    pub name: String,
+    pub exe: String,
+    pub path: String,
+}
+
+pub fn process_identity(pid: u32) -> ProcessIdentity {
+    let unknown =
+        || ProcessIdentity { name: format!("pid {pid}"), exe: String::new(), path: String::new() };
     unsafe {
         let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
         if handle.is_null() {
-            return format!("pid {pid}");
+            return unknown();
         }
         let mut buf = [0u16; 1024];
         let mut len = buf.len() as u32;
         let ok = QueryFullProcessImageNameW(handle, 0, buf.as_mut_ptr(), &mut len);
         CloseHandle(handle);
         if ok == 0 {
-            return format!("pid {pid}");
+            return unknown();
         }
         let path = String::from_utf16_lossy(&buf[..len as usize]);
-        Path::new(&path)
-            .file_stem()
-            .map(|s| s.to_string_lossy().into_owned())
-            .unwrap_or(path)
+        let file = Path::new(&path);
+        let exe = file.file_name().map(|s| s.to_string_lossy().to_lowercase()).unwrap_or_default();
+        let name =
+            file.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| path.clone());
+        ProcessIdentity { name, exe, path }
+    }
+}
+
+/// When the process started, as a Windows FILETIME value. Together with the process id
+/// this identifies one run of a program even after ids are reused.
+pub fn process_start_time(pid: u32) -> Option<u64> {
+    unsafe {
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+        if handle.is_null() {
+            return None;
+        }
+        let mut times: [FILETIME; 4] = zeroed();
+        let [created, exited, kernel, user] = &mut times;
+        let ok = GetProcessTimes(handle, created, exited, kernel, user);
+        CloseHandle(handle);
+        (ok != 0).then(|| ((times[0].dwHighDateTime as u64) << 32) | times[0].dwLowDateTime as u64)
     }
 }
 
@@ -205,4 +245,28 @@ fn find_icon(hwnd: isize) -> Option<*mut c_void> {
         }
     }
     None
+}
+
+/// The real Windows version as (major, minor, build). Unlike `GetVersionEx`, this is not
+/// affected by compatibility settings.
+pub fn os_version() -> (u32, u32, u32) {
+    #[repr(C)]
+    struct VersionInfo {
+        size: u32,
+        major: u32,
+        minor: u32,
+        build: u32,
+        platform: u32,
+        service_pack: [u16; 128],
+    }
+    #[link(name = "ntdll")]
+    extern "system" {
+        fn RtlGetVersion(info: *mut VersionInfo) -> i32;
+    }
+    unsafe {
+        let mut info: VersionInfo = zeroed();
+        info.size = size_of::<VersionInfo>() as u32;
+        RtlGetVersion(&mut info);
+        (info.major, info.minor, info.build)
+    }
 }

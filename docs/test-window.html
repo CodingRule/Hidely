@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hidely test window</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display: grid;
+        place-content: center;
+        gap: 12px;
+        padding: 24px;
+        background: #f2c14e;
+        color: #1b1c1f;
+        font: 16px/1.4 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+        text-align: center;
+      }
+      strong {
+        font-size: 34px;
+        line-height: 1.1;
+      }
+      #clock {
+        font: 600 22px ui-monospace, Consolas, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <strong>TEST WINDOW</strong>
+    <span>Nothing private here. Protect this window in Hidely, then look for it in the preview.</span>
+    <span id="clock" aria-live="off"></span>
+    <script>
+      // A ticking clock makes it obvious whether the preview is live or frozen.
+      const clock = document.getElementById("clock");
+      const tick = () => (clock.textContent = new Date().toLocaleTimeString());
+      tick();
+      setInterval(tick, 1000);
+    </script>
+  </body>
+</html>

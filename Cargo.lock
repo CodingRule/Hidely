@@ -1526,6 +1526,7 @@ dependencies = [
  "hidely-core",
  "png 0.17.16",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-global-shortcut",
@@ -1543,6 +1544,8 @@ dependencies = [
 name = "hidely-core"
 version = "0.1.2"
 dependencies = [
+ "serde",
+ "serde_json",
  "windows-sys 0.59.0",
 ]
 

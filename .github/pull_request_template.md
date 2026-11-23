@@ -5,5 +5,5 @@
 ## How I checked it
 
 - [ ] `cargo test --workspace` passes
-- [ ] Hid a window and confirmed it disappears on the [test page](https://codingrule.github.io/Hidely/)
-- [ ] Hidden windows come back after the panic key and after quitting Hidely
+- [ ] Protected the test window and confirmed it disappears on the [test page](https://codingrule.github.io/Hidely/)
+- [ ] Protected windows come back after ending the session and after quitting Hidely

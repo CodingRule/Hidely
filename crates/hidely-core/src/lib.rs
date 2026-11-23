@@ -6,16 +6,22 @@
 
 #![cfg(windows)]
 
-mod cloaker;
+pub mod cloaker;
+pub mod engine;
+pub mod model;
 pub mod driver;
 mod error;
 pub mod inject;
 pub mod overlay;
+pub mod pointer;
 mod windows;
 
-pub use cloaker::Cloaker;
+pub use cloaker::{data_dir, Cloaker};
 pub use error::CloakError;
-pub use windows::{display_affinity, icon_rgba, is_window, list_windows, owner_pid, WindowInfo};
+pub use windows::{
+    display_affinity, icon_rgba, is_window, list_windows, os_version, owner_pid, process_identity,
+    WindowInfo,
+};
 
 /// Window is captured normally.
 pub const WDA_NONE: u32 = 0x0;

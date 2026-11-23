@@ -4,9 +4,24 @@ use tauri::image::Image;
 
 const SIZE: u32 = 32;
 
-/// A little ghost: grey when nothing is hidden, red while windows are hidden.
-pub fn tray_icon(active: bool) -> Image<'static> {
-    let colour: [u8; 3] = if active { [0xE5, 0x48, 0x4D] } else { [0x9A, 0xA0, 0xA6] };
+/// What the tray icon should say at a glance. The tooltip always says it in words too.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum TrayLook {
+    /// No privacy session.
+    Idle,
+    /// A session is running and nothing has gone wrong.
+    Active,
+    /// A session is running, but some windows could not be protected or restored.
+    Attention,
+}
+
+/// A little ghost: grey when idle, red during a session, amber when something needs a look.
+pub fn tray_icon(look: TrayLook) -> Image<'static> {
+    let colour: [u8; 3] = match look {
+        TrayLook::Idle => [0x9A, 0xA0, 0xA6],
+        TrayLook::Active => [0xE5, 0x48, 0x4D],
+        TrayLook::Attention => [0xF5, 0xA5, 0x24],
+    };
     let mut rgba = vec![0u8; (SIZE * SIZE * 4) as usize];
     for y in 0..SIZE {
         for x in 0..SIZE {

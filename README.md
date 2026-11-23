@@ -34,27 +34,34 @@
 </p>
 
 You are sharing your screen in a meeting and need to check your password manager, a private chat
-or a terminal. Normally everyone watching sees it too. With Hidely, you pick the windows that are
-private, press a hotkey, and they disappear from Zoom, Teams, Meet, OBS, Discord, the Snipping
-Tool and Print Screen, while staying fully visible and usable on your own monitor.
+or a terminal. Normally everyone watching sees it too. With Hidely, you choose the windows that
+are private and start a privacy session. Hidely asks Windows to leave those windows out of screen
+capture, while they stay fully visible and usable on your own monitor.
 
 Hidely lives in the system tray, needs no driver and no administrator rights for ordinary apps,
-and always puts things back the way it found them.
+and puts things back the way it found them when the session ends.
+
+Capture protection is not a guarantee against every recording method. What a given meeting app
+shows depends on how it captures the screen, so check yours with the [test page](#download) and
+see the [compatibility record](docs/COMPATIBILITY.md) for what has actually been tested.
 
 ## Features
 
-- **Window list.** Every open window with its icon, title and app, and a Hide button next to each.
-- **Pin and hotkey.** Pin the windows you care about, then press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> to hide or show them all at once.
-- **Panic key.** <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> un-hides everything instantly.
-- **Tray icon.** The ghost turns red while anything is hidden, so you always know your state.
-- **Hides itself too.** Hidely's own window is first in the list, so you can keep it out of your share as well.
-- **Private HUD.** A small on-screen confirmation that is itself excluded from capture, so viewers never see it.
-- **Always restores.** Hidden windows are un-hidden when Hidely quits or crashes. If it is killed outright, the next launch restores them from a journal.
-- **Stays out of the way.** A small see-through black window with search and filters for All, Pinned and Hidden. It uses almost no CPU while open.
-- **CLI included.** `hidely-cli hide notepad` for scripts and automation.
+- **Privacy sessions.** Protection has a clear start and end. Ending a session makes every window Hidely changed capturable again.
+- **Meeting profiles.** Save sets of apps such as Work, Client demo or Streaming. Before a session starts, Hidely shows which apps it will affect and which are not running.
+- **New windows are covered.** During a session with a profile, windows those apps open later are protected too. A new window can be captured for a moment first; see [measured behaviour](docs/COMPATIBILITY.md#measured-behaviour).
+- **Honest status.** Each window is Unprotected, Applying, Protection applied, Unsupported or Error, in words and a distinct icon. "Protection applied" is only shown after Windows confirms the setting, and failures say why.
+- **Pins and manual control.** Protect a single window at any time, or pin windows to include them when a session starts.
+- **Shortcuts you can change.** <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> starts or ends a session and <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> makes everything capturable again, by default. If a new combination is taken, the old one keeps working.
+- **Works from the tray.** Start, end and restore from the tray menu with the window closed. The tooltip says in words what is protected.
+- **Private HUD.** A small on-screen confirmation that is itself excluded from capture.
+- **Plain pointer over protected windows.** Captures still draw the mouse pointer over a window they leave out. While it is over a protected window, Hidely keeps it a plain arrow, so a text bar or a hand can't give the window away.
+- **Recovery.** If Hidely crashes it restores windows on the way down. If it is killed outright, the next launch restores them and tells you.
+- **Local diagnostics.** An optional report you read before saving. It has no window titles, paths or screenshots and is never uploaded.
+- **CLI included.** `hidely-cli watch slack.exe` runs a session from a terminal.
 
 <p align="center">
-  <img src="docs/images/screenshot.png" width="760" alt="The Hidely window: a list of open windows, two of them marked as hidden from capture, each with Pin and Hide buttons" />
+  <img src="docs/images/screenshot.png" width="760" alt="The Hidely window during a privacy session: a list of windows with statuses such as Protection applied, Unsupported and Error, a profile list, and an End session button" />
 </p>
 
 ## Download
@@ -73,9 +80,11 @@ don't offer, so there is nothing to build or run on those systems.
 The downloads are not code-signed yet, so Windows shows a "Windows protected your PC" warning the
 first time. Choose **More info**, then **Run anyway**.
 
-Then open the **[test page](https://codingrule.github.io/Hidely/)**, press **Start screen share**,
-choose **Entire screen**, and hide a window in Hidely. It vanishes from the preview and stays on
-your monitor. Nothing from the test page is recorded or uploaded.
+Then open the **[test page](https://codingrule.github.io/Hidely/)**. It opens a harmless test
+window, shows you your own screen share, and lets you see whether a protected window is left out
+of it. That preview verifies the capture method you picked in that browser only, so repeat the
+check in the preview of each meeting app you use. Nothing from the test page is recorded or
+uploaded.
 
 ## Build from source
 
@@ -115,30 +124,42 @@ installer and publishes it.
 
 | I want to… | Do this |
 |---|---|
-| Hide one window right now | Click **Hide** next to it |
-| Hide a set of windows with one key | Click **Pin** on each, then press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> |
-| Bring everything back | Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd>, or click **Show everything** |
+| Protect one window right now | Click **Protect** next to it. This starts a session if none is running. |
+| Protect the same apps every time | Click **New** under Profiles, tick the apps, save, and select the profile |
+| Start a session | Click **Start session** (or press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd>), read what it will affect, and confirm |
+| Include a specific window | Click its pin before starting. Pinned windows are protected when a session starts. |
+| End the session | Click **End session**, or press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> again |
+| Make everything capturable again, now | Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> |
+| Change the shortcuts | Click **Change shortcuts** at the bottom left |
 | Keep it out of the way | Close the window. Hidely stays in the tray. |
 | Quit | Right-click the tray icon and choose **Quit** |
 
 ### Command line
 
 ```text
-hidely-cli list                 List windows (* = excluded from capture)
-hidely-cli hide <target>        Hide matching windows from capture
-hidely-cli show <target>        Make matching windows capturable again
-hidely-cli restore              Un-hide everything Hidely has hidden
+hidely-cli list                      List windows (* = excluded from capture)
+hidely-cli hide <target>             Exclude matching windows from capture
+hidely-cli show <target>             Make matching windows capturable again
+hidely-cli restore                   Make everything Hidely changed capturable again
+hidely-cli watch <exe>... [--seconds N]
+                                     Run a privacy session for these programs,
+                                     including windows they open while it runs
 ```
 
 `<target>` is a window handle such as `0x1A2B3C` or a process name such as `notepad`.
+`<exe>` is a whole executable file name such as `notepad.exe`.
+
+The app itself also takes two arguments, which are passed to the copy that is already running:
+`Hidely.exe --toggle-session` starts or ends a session with the selected profile and pinned
+windows, and `Hidely.exe --end-session` makes everything capturable again.
 Build it with `cargo build --release -p hidely-cli`.
 
 ## How it works
 
 Windows has a documented switch for this:
 [`SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity).
-The compositor then leaves that window out of every capture. Password managers use it on their
-own windows.
+Windows then leaves that window out of screen capture. Password managers use it on their own
+windows.
 
 The catch is that Windows only accepts the call from the process that owns the window. So for
 another app's window, Hidely makes the call from inside that app:
@@ -147,33 +168,40 @@ another app's window, Hidely makes the call from inside that app:
    `SetWindowDisplayAffinity` for that window.
 2. It runs the stub on a short-lived thread and reads back whether Windows accepted it.
 3. It frees the memory again. No DLL stays loaded and nothing in the app is patched.
+4. It asks Windows what the window's setting is now. Only if that matches is the window shown
+   as "Protection applied".
 
 The whole mechanism is about 150 lines in
 [`crates/hidely-core/src/inject.rs`](crates/hidely-core/src/inject.rs).
 
 ```text
 ui/                  Front end (plain HTML, CSS, JS)
-src-tauri/           Tauri 2 app: tray, hotkeys, HUD, commands
-crates/hidely-core/  Window enumeration and capture exclusion (Win32)
-crates/hidely-cli/   Command-line front end
-docs/                Screen-share test page, driver notes
-driver/              DWMShield kernel driver, unmodified (see below)
+src-tauri/           Tauri 2 app: tray, shortcuts, HUD, commands
+crates/hidely-core/  The engine: windows, sessions, profiles, capture exclusion (Win32)
+crates/hidely-cli/   Command-line front end over the same engine
+docs/                Test page, compatibility record, driver notes
+driver/              DWMShield kernel driver (optional, not built; see below)
 ```
 
 ## Limits you should know about
 
-- **64-bit apps only.** 32-bit apps are reported as unsupported.
-- **Elevated apps need an elevated Hidely.** To hide a window that runs as administrator, run Hidely as administrator too.
-- **Protected processes can't be hidden** in user mode. That is what the optional kernel driver is for.
+- **Not every capture method is covered, and few are tested.** The [compatibility record](docs/COMPATIBILITY.md) lists exactly what has been checked. Treat anything else as unknown until you have looked at it yourself.
+- **A new window can be seen briefly.** During a session, a window an app opens can appear in a capture for a moment before Hidely protects it (0 to 139 ms in our measurements).
+- **Don't use it on games with anti-cheat.** Hidely has to run a call inside the app it protects, and anti-cheat software treats that as tampering. It may block the change (Hidely then shows an Error), and it could flag your account. Roblox blocked it in our one observation.
+- **64-bit apps only.** 32-bit apps are reported as Unsupported.
+- **Elevated apps need an elevated Hidely.** To protect a window that runs as administrator, run Hidely as administrator too.
+- **Protected processes can't be changed** in user mode. That is what the optional kernel driver is for.
+- **A forced kill leaves windows protected** until Hidely is started again or the app is reopened.
+- **The plain pointer applies to you too.** While the pointer is over a protected window you also see an arrow instead of a text bar or hand. Apps that draw their own custom pointers are not affected. If Hidely is killed at that moment, pointers stay plain until Hidely starts again or you sign out.
 - **Antivirus may object.** Writing into another process is also what malware does, so some security products flag or block it. The code is short and open so you can check what it does.
-- **Hidden means hidden from capture, nothing more.** Hidely does not hide a window from someone looking at your monitor, from software that reads window titles, or from an administrator of the machine.
-- **Hotkeys can be taken.** If another app already owns a shortcut, Hidely says so at the bottom of its window.
+- **It only affects screen capture.** Hidely does not conceal a window from someone looking at your monitor, from software that reads window titles or lists running programs, or from an administrator of the machine.
+- **Shortcuts can be taken.** If another app already owns a combination, Hidely says so and lets you pick another.
 
 ## Roadmap
 
 - [x] **v0.1** Tray app, window list, hide and show, pins, hotkeys, panic key, restore on exit
-- [ ] **v0.2** Profiles ("Work", "Stream") and rules that auto-hide by process name
-- [ ] **v0.2** 32-bit app support and configurable hotkeys
+- [x] **v0.2** Privacy sessions, meeting profiles, rules for new windows, honest status, configurable shortcuts, diagnostics
+- [ ] **v0.2** 32-bit app support, and more entries in the compatibility record
 - [ ] **v0.3** Optional kernel driver for protected windows, see [docs/DRIVER.md](docs/DRIVER.md)
 - [ ] **v0.4** Browser extension for per-tab hiding
 - [ ] **v1.0** Signed installer and auto-update
