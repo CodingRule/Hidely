@@ -199,14 +199,21 @@ driver/              DWMShield kernel driver (optional, not built; see below)
 
 ## Roadmap
 
-- [x] **v0.1** Tray app, window list, hide and show, pins, hotkeys, panic key, restore on exit
+Released:
+
+- [x] **v0.1** Tray app, window list, pins, shortcuts, restore on exit
 - [x] **v0.2** Privacy sessions, meeting profiles, rules for new windows, honest status, configurable shortcuts, diagnostics
-- [x] **v0.2** 32-bit app support, and capture methods and browsers tested for the compatibility record
-- [x] **v0.3** Apps running as administrator, by restarting Hidely as administrator (no driver)
-- [ ] Meeting apps (Zoom, Teams, Discord, OBS) checked for the compatibility record
-- [ ] **Later** Optional kernel driver for protected processes. Not built or tested; see [docs/DRIVER.md](docs/DRIVER.md) for why
+- [x] **v0.2.1** 32-bit apps, apps running as administrator, and capture methods and browsers tested for the compatibility record
+
+Next:
+
+- [ ] **v0.3** Zoom, Teams, Discord, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md)
 - [ ] **v0.4** Browser extension for per-tab hiding
 - [ ] **v1.0** Signed installer and auto-update
+
+Not planned for now:
+
+- Optional kernel driver for protected processes. It is not built or tested; [docs/DRIVER.md](docs/DRIVER.md) explains why.
 
 ## Contributing
 
