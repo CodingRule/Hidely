@@ -207,7 +207,7 @@ Released:
 
 Next:
 
-- [ ] **v0.3** Zoom, Teams, Discord, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md)
+- [ ] **v0.3** Zoom, Teams, Discord, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
 - [ ] **v0.4** Browser extension for per-tab hiding
 - [ ] **v1.0** Signed installer and auto-update
 
