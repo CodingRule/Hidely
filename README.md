@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/demo.gif" width="900" alt="Screen recording: a music player sits next to Hidely. Clicking Hide makes the music player vanish from the recording, and clicking Show brings it back." />
+  <img src="docs/images/demo.gif" width="900" alt="Screen recording: a music player sits next to Hidely. Clicking Protect makes the music player vanish from the recording while Hidely shows Protection applied, and clicking Unprotect brings it back." />
 </p>
 
 You are sharing your screen in a meeting and need to check your password manager, a private chat
@@ -58,6 +58,7 @@ see the [compatibility record](docs/COMPATIBILITY.md) for what has actually been
 - **Plain pointer over protected windows.** Captures still draw the mouse pointer over a window they leave out. While it is over a protected window, Hidely keeps it a plain arrow, so a text bar or a hand can't give the window away.
 - **Recovery.** If Hidely crashes it restores windows on the way down. If it is killed outright, the next launch restores them and tells you.
 - **Local diagnostics.** An optional report you read before saving. It has no window titles, paths or screenshots and is never uploaded.
+- **32-bit and 64-bit apps.** Both are supported.
 - **CLI included.** `hidely-cli watch slack.exe` runs a session from a terminal.
 
 <p align="center">
@@ -185,11 +186,10 @@ driver/              DWMShield kernel driver (optional, not built; see below)
 
 ## Limits you should know about
 
-- **Not every capture method is covered, and few are tested.** The [compatibility record](docs/COMPATIBILITY.md) lists exactly what has been checked. Treat anything else as unknown until you have looked at it yourself.
+- **Not every app has been tested.** The three main Windows capture methods and screen sharing in Chrome and Edge are confirmed; Zoom, Teams, Discord and OBS are not yet. The [compatibility record](docs/COMPATIBILITY.md) lists exactly what was checked and how. Treat anything else as unknown until you have looked at it yourself.
 - **A new window can be seen briefly.** During a session, a window an app opens can appear in a capture for a moment before Hidely protects it (0 to 139 ms in our measurements).
 - **Don't use it on games with anti-cheat.** Hidely has to run a call inside the app it protects, and anti-cheat software treats that as tampering. It may block the change (Hidely then shows an Error), and it could flag your account. Roblox blocked it in our one observation.
-- **64-bit apps only.** 32-bit apps are reported as Unsupported.
-- **Elevated apps need an elevated Hidely.** To protect a window that runs as administrator, run Hidely as administrator too.
+- **Apps running as administrator need Hidely to be too.** Hidely reports them as an Error otherwise. Use **Restart as administrator** at the bottom left; Windows will ask you to approve.
 - **Protected processes can't be changed** in user mode. That is what the optional kernel driver is for.
 - **A forced kill leaves windows protected** until Hidely is started again or the app is reopened.
 - **The plain pointer applies to you too.** While the pointer is over a protected window you also see an arrow instead of a text bar or hand. Apps that draw their own custom pointers are not affected. If Hidely is killed at that moment, pointers stay plain until Hidely starts again or you sign out.
@@ -201,8 +201,10 @@ driver/              DWMShield kernel driver (optional, not built; see below)
 
 - [x] **v0.1** Tray app, window list, hide and show, pins, hotkeys, panic key, restore on exit
 - [x] **v0.2** Privacy sessions, meeting profiles, rules for new windows, honest status, configurable shortcuts, diagnostics
-- [ ] **v0.2** 32-bit app support, and more entries in the compatibility record
-- [ ] **v0.3** Optional kernel driver for protected windows, see [docs/DRIVER.md](docs/DRIVER.md)
+- [x] **v0.2** 32-bit app support, and capture methods and browsers tested for the compatibility record
+- [x] **v0.3** Apps running as administrator, by restarting Hidely as administrator (no driver)
+- [ ] Meeting apps (Zoom, Teams, Discord, OBS) checked for the compatibility record
+- [ ] **Later** Optional kernel driver for protected processes. Not built or tested; see [docs/DRIVER.md](docs/DRIVER.md) for why
 - [ ] **v0.4** Browser extension for per-tab hiding
 - [ ] **v1.0** Signed installer and auto-update
 

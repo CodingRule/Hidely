@@ -10,6 +10,7 @@ pub mod cloaker;
 pub mod engine;
 pub mod model;
 pub mod driver;
+pub mod elevation;
 mod error;
 pub mod inject;
 pub mod overlay;

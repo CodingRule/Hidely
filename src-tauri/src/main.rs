@@ -12,7 +12,7 @@ use base64::Engine as _;
 use hidely_core::engine::{EndReport, Engine, Source, Status, Summary, WATCH_INTERVAL_MS};
 use hidely_core::model::{AppRule, Profile, Settings, Shortcuts, DEFAULT_RESTORE, DEFAULT_TOGGLE};
 use hidely_core::{
-    data_dir, icon_rgba, list_windows, os_version, overlay, pointer, Cloaker, WindowInfo,
+    data_dir, elevation, icon_rgba, list_windows, os_version, overlay, pointer, Cloaker, WindowInfo,
 };
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -174,6 +174,8 @@ struct Snapshot {
     shortcuts: Vec<ShortcutDto>,
     notices: Vec<String>,
     watch_interval_ms: u64,
+    /// Hidely is running as administrator, so it can reach apps that do too.
+    elevated: bool,
 }
 
 #[derive(Serialize)]
@@ -263,6 +265,7 @@ fn snapshot(app: AppHandle, state: State<AppState>) -> Snapshot {
         shortcuts: shortcut_dtos(&lock(&state.bindings)),
         notices: lock(&state.notices).clone(),
         watch_interval_ms: WATCH_INTERVAL_MS,
+        elevated: elevation::is_elevated(),
     }
 }
 
@@ -392,6 +395,20 @@ fn reset_shortcuts(app: AppHandle) -> Result<(), String> {
     let result = reset_shortcuts_action(&app);
     refresh(&app);
     result
+}
+
+/// Close Hidely and start it again as administrator, so it can protect windows of apps
+/// that run as administrator. Windows asks the user to approve; if they decline, nothing
+/// changes. The session is ended first, like any other quit.
+#[tauri::command(async)]
+fn restart_elevated(app: AppHandle) -> Result<(), String> {
+    let exe = std::env::current_exe().map_err(|e| format!("Could not find Hidely's own program file: {e}"))?;
+    // The new copy waits for this one to exit, so the two never run side by side.
+    if !elevation::launch_elevated(&exe, &format!("--after {}", std::process::id())) {
+        return Err("Hidely was not restarted, because the administrator prompt was declined.".into());
+    }
+    app.exit(0);
+    Ok(())
 }
 
 /// The diagnostic report, for the user to read before deciding to save it.
@@ -672,6 +689,7 @@ fn build_diagnostics(state: &AppState) -> String {
         "hidely_version": env!("CARGO_PKG_VERSION"),
         "windows_version": format!("{major}.{minor}.{build}"),
         "architecture": std::env::consts::ARCH,
+        "running_as_administrator": elevation::is_elevated(),
         "session": {
             "active": summary.session_active,
             "watching_for_new_windows": summary.watching,
@@ -875,6 +893,17 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() {
+    // Started by `restart_elevated`: let the copy we are replacing finish closing first.
+    let arguments: Vec<String> = std::env::args().collect();
+    if let Some(pid) = arguments
+        .iter()
+        .position(|argument| argument == "--after")
+        .and_then(|index| arguments.get(index + 1))
+        .and_then(|pid| pid.parse().ok())
+    {
+        elevation::wait_for_exit(pid, 15_000);
+    }
+
     // Anything a previous run left excluded (because it was killed) is restored here,
     // before the window opens. The engine remembers how that went.
     let engine = Arc::new(Mutex::new(Engine::new(Cloaker::new())));
@@ -949,6 +978,7 @@ fn main() {
             select_profile,
             set_shortcut,
             reset_shortcuts,
+            restart_elevated,
             diagnostics,
             save_diagnostics,
             window_icon

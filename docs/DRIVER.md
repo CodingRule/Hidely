@@ -1,13 +1,32 @@
-# The kernel driver (optional, not built yet)
+# The kernel driver (optional, not built, not tested)
 
-Hidely works without a driver. This page is about the planned v0.3 driver that would extend
-hiding to windows the user-mode method can't reach (protected processes).
+Hidely works without a driver, and that covers 32-bit and 64-bit apps, and apps running as
+administrator (restart Hidely as administrator). The only windows left are those of
+*protected processes*, which Windows deliberately shields from every user-mode program,
+administrators included. Reaching those would take a kernel driver. This page is about that
+driver and why it is not part of Hidely yet.
+
+## Status
+
+Nothing in `driver/` is built, shipped or loaded by Hidely, and none of it has been tested as
+part of this project. Three things stand in the way, and none of them can be worked around
+in code:
+
+1. **It cannot be built without the Windows Driver Kit**, and it cannot be loaded without
+   either a Microsoft-signed build or Windows' test-signing mode, which lowers the security
+   of the whole machine and has to be a deliberate choice by the machine's owner.
+2. **It cannot be tested safely on a machine someone is using.** A mistake in a kernel
+   driver is a blue screen. Development needs a throwaway virtual machine.
+3. **The design is not safe to ship yet.** See the list below.
+
+Hidely will not grow features that conceal processes or network activity, with or without a
+driver. The driver's only intended job is the same capture exclusion the app already does.
 
 ## What is in `driver/`
 
 `driver/HideWindow.c` and `driver/protect.c` are the
 [DWMShield](https://github.com/ahossu/DWMShield) sources by Alexandru Hossu, included with
-permission under `driver/LICENCE` and maintained here together with him. The driver receives a window handle over an IOCTL and calls
+permission under `driver/LICENSE` and maintained here together with him. The driver receives a window handle over an IOCTL and calls
 the internal `win32kfull!GreProtectSpriteContent(0, hwnd, 1, 0x11)`, which is what
 `SetWindowDisplayAffinity` ends up calling.
 

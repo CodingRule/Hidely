@@ -9,22 +9,44 @@ To check a combination yourself, protect the harmless test window from the
 [test page](https://codingrule.github.io/Hidely/) and look at that app's own preview. Results
 and corrections are welcome as issues or pull requests.
 
+## Capture methods
+
+Programs capture the screen through a small number of Windows mechanisms. These rows test the
+mechanism directly: a solid-colour test window was captured before protecting it, while
+protected, and after restoring it, and the pixels inside its rectangle were counted. All on
+Windows 11 25H2 (26200.9974) on 2026-11-23, using ffmpeg 9.0.1 as the capturing program
+unless noted.
+
+| Capture method | Capture mode | Unprotected | Protected | Restored |
+|---|---|---|---|---|
+| GDI `BitBlt` (ffmpeg `gdigrab`) | Region of the screen | Window visible | **Window absent** | Visible again |
+| DXGI Desktop Duplication (ffmpeg `ddagrab`) | Whole monitor | Window visible | **Window absent** | Visible again |
+| Windows Graphics Capture (ffmpeg `gfxcapture`) | Whole monitor | Window visible | **Window absent** | Visible again |
+| Windows Graphics Capture (ffmpeg `gfxcapture`) | The protected window itself | Window visible | **No picture at all**: the capture delivered no frames | Visible again |
+| `PrintWindow` with `PW_RENDERFULLCONTENT` | The protected window itself | Window visible | **Blank**: none of the window's content | Visible again |
+
 ## Capture apps
+
+Each app was checked in the app itself, with the versions shown. An app is not marked as
+working because another app that uses the same method is.
 
 | Windows | Capture app and version | Capture mode | Result | Checked |
 |---|---|---|---|---|
-| 11 25H2 (26200.9974) | GDI screen copy (`BitBlt`, via .NET `CopyFromScreen`) | Region of the primary monitor | Protected window absent; what was behind it shows instead | 2026-11-22, during development |
-| 11 25H2 (26200) | Google Chrome, `getDisplayMedia` (Hidely test page). Chrome version not recorded at the time; 157.0.8103.80 was installed the next day | Entire screen | Protected window absent from the preview | 2026-11-22, reported by the maintainer |
-| any | Google Chrome, `getDisplayMedia` | Single window, or browser tab | **Untested** | |
-| any | Microsoft Edge, `getDisplayMedia` | Any | **Untested** | |
+| 11 25H2 (26200.9974) | Google Chrome 157.0.8103.80, `getDisplayMedia` | Entire screen | Protected window absent; visible again after restoring | 2026-11-23, automated |
+| 11 25H2 (26200.9974) | Microsoft Edge 158.0.4370.33, `getDisplayMedia` | Entire screen | Protected window absent; visible again after restoring | 2026-11-23, automated |
+| any | Chrome or Edge, `getDisplayMedia` | Single window, or browser tab | **Untested** | |
 | any | Mozilla Firefox, `getDisplayMedia` | Any | **Untested** | |
+| any | Google Meet (runs in the browser) | Any | **Untested** in a real meeting | |
 | any | Zoom | Any | **Untested** | |
 | any | Microsoft Teams | Any | **Untested** | |
-| any | Google Meet | Any | **Untested** | |
 | any | Discord | Any | **Untested** | |
 | any | OBS Studio | Display, window and game capture | **Untested** | |
 | any | Snipping Tool, Print Screen | Screenshot and recording | **Untested** | |
 | 10 (any) | Any | Any | **Untested** | |
+
+Zoom, Teams, Discord and OBS each use one or more of the capture methods above, but which
+one depends on the app's version and settings. They stay Untested until someone checks the
+app's own preview.
 
 ## Target windows
 
@@ -34,10 +56,12 @@ Windows 11 25H2 (26200.9974), Hidely not elevated, on 2026-11-23.
 | Target | Result |
 |---|---|
 | 64-bit app, not elevated (Python 3.11 Tk window) | Protection applied, confirmed by reading the setting back |
-| 32-bit app (32-bit Windows PowerShell form) | Reported as Unsupported. The window was left unchanged |
+| 32-bit app (32-bit Windows PowerShell form) | Protection applied and removed three times in a row, and through a session. The app kept running and responding |
+| App running as administrator (Task Manager), Hidely not elevated | Reported as Error (access denied). The window was left unchanged |
+| App running as administrator, Hidely restarted as administrator | **Untested** |
 | Window closed before the request | Reported as gone. Nothing changed |
 | Roblox (`RobloxPlayerBeta.exe`, version not recorded), seen once in the app | Reported as Error: the request ran, but reading the setting back showed it had not changed. The game's anti-cheat most likely blocked it. Do not use Hidely on games with anti-cheat |
-| Elevated or protected app | **Untested** on a real window. The code reports it as an error and never as protected (covered by a unit test only) |
+| Protected process (for example some security software) | **Untested**. Not reachable from user mode by design |
 
 ## Measured behaviour
 

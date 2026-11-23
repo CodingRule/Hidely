@@ -4,6 +4,19 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- 32-bit apps are now supported.
+- **Restart as administrator**, for protecting windows of apps that run as administrator.
+- Compatibility record: three Windows capture methods, window capture, and screen sharing
+  in Chrome and Edge are now tested, with how each was checked.
+
+### Changed
+
+- New demo recording showing the current design.
+
 ## [0.2.0] - 2026-11-23
 
 ### Added

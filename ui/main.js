@@ -207,6 +207,11 @@ function render(snapshot) {
   renderProfiles(snapshot);
   renderHotkeys(snapshot.shortcuts);
   renderNotices(snapshot.notices);
+
+  // Offered only when it would help: Hidely is not elevated yet.
+  const restart = $("restart-elevated");
+  restart.hidden = snapshot.elevated;
+  restart.title = "Needed to protect windows of apps that run as administrator. Ends the current session first.";
 }
 
 function renderSession(summary, lastEnd) {
@@ -563,6 +568,7 @@ for (const button of document.querySelectorAll(".filter")) {
 }
 search.addEventListener("input", applyFilter);
 $("dismiss-notices").addEventListener("click", () => run(() => invoke("dismiss_notices")));
+$("restart-elevated").addEventListener("click", () => run(() => invoke("restart_elevated")));
 
 // Title bar buttons. Closing sends the window to the tray (handled in Rust).
 const appWindow = window.__TAURI__.window?.getCurrentWindow();

@@ -43,7 +43,7 @@ impl fmt::Display for CloakError {
             Self::Unsupported(why) => write!(f, "not supported: {why}"),
             Self::AccessDenied => write!(
                 f,
-                "access denied (the app is elevated or protected; try running Hidely as administrator)"
+                "access denied (the app runs as administrator or is protected; restart Hidely as administrator to reach it)"
             ),
             Self::Os { call, code } => write!(f, "{call} failed with Win32 error {code}"),
             Self::Timeout => write!(f, "the target app did not respond in time"),
