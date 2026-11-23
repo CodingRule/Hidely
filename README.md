@@ -217,8 +217,11 @@ Not planned for now:
 
 ## Contributing
 
-Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up,
-what to check before a pull request, and where things live. Changes are listed in the
+Issues and pull requests are welcome, and you don't need to write code to help: testing Hidely
+with a meeting app you already use is the most useful thing right now. See the
+[good first issues](https://github.com/CodingRule/Hidely/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+[CONTRIBUTING.md](CONTRIBUTING.md) explains where to start, how to set up, what to check before
+a pull request, and where things live. Changes are listed in the
 [changelog](CHANGELOG.md).
 
 Found a security problem? Please report it privately as described in [SECURITY.md](SECURITY.md).

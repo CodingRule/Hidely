@@ -1,0 +1,60 @@
+name: Compatibility report
+description: Tell us whether a capture app shows a window that Hidely is protecting
+title: "Compatibility: "
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Every row in the [compatibility record](https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md) comes from a report like this.
+        Use the harmless test window from the [test page](https://codingrule.github.io/Hidely/), not a real private window.
+  - type: input
+    id: app
+    attributes:
+      label: Capture app and version
+      placeholder: e.g. Zoom Workplace 7.1.9, OBS Studio 30.1.2, Discord 1.0.9269
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: What were you capturing?
+      options:
+        - Entire screen or monitor
+        - A single window
+        - A browser tab
+        - A region or screenshot
+        - Something else (say below)
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: With "Protection applied" showing in Hidely, what did the capture show?
+      options:
+        - The protected window was absent
+        - The protected window was a black or blank rectangle
+        - The protected window was fully visible
+        - Something else (say below)
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Press Win + R, type winver, and copy the version and build.
+      placeholder: e.g. Windows 11 25H2 (build 26200.9974)
+    validations:
+      required: true
+  - type: input
+    id: hidely
+    attributes:
+      label: Hidely version
+      placeholder: e.g. 0.2.1
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Settings that might matter, such as OBS's capture method or the app's hardware acceleration setting. Did the window come back after you pressed Unprotect?

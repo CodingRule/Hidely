@@ -2,6 +2,22 @@
 
 Thanks for wanting to help. Bug reports, ideas and pull requests are all welcome.
 
+## Where to start
+
+You don't need to know Rust, or even write code, to help:
+
+- **Test an app you already use.** Zoom, Teams, Discord, OBS and Firefox have not been checked
+  yet. It takes about ten minutes with the test window, and each result becomes a row in the
+  [compatibility record](docs/COMPATIBILITY.md). Open a
+  [compatibility report](https://github.com/CodingRule/Hidely/issues/new?template=compatibility_report.yml).
+- **Pick a [good first issue](https://github.com/CodingRule/Hidely/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).**
+  Each one says which file to change, what done looks like, and how to check it.
+- **Look at [help wanted](https://github.com/CodingRule/Hidely/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)**
+  for slightly larger pieces.
+
+Comment on an issue before you start so two people don't do the same work. The
+[roadmap](README.md#roadmap) shows where the project is heading.
+
 ## Reporting a bug
 
 Open an [issue](https://github.com/CodingRule/Hidely/issues/new/choose) and include:
