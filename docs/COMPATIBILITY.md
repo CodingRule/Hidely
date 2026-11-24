@@ -39,7 +39,8 @@ working because another app that uses the same method is.
 | any | Google Meet (runs in the browser) | Any | **Untested** in a real meeting | |
 | any | Zoom | Any | **Untested** | |
 | any | Microsoft Teams | Any | **Untested** | |
-| any | Discord | Any | **Untested** | |
+| 11 26H2 (26300.9974) | Discord stable 679963, host 1.0.9269 | Entire screen | Protected window absent | 2026-11-24, reported by hu-ja-ja in [issue 10](https://github.com/CodingRule/Hidely/issues/10), Hidely 0.2.1 |
+| any | Discord | Single window, or Go Live on an app | **Untested** | |
 | any | OBS Studio | Display, window and game capture | **Untested** | |
 | any | Snipping Tool, Print Screen | Screenshot and recording | **Untested** | |
 | 10 (any) | Any | Any | **Untested** | |
