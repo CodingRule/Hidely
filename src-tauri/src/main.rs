@@ -32,8 +32,12 @@ const RELEASES_URL: &str = "https://github.com/CodingRule/Hidely/releases/latest
 
 /// How browsers find Hidely: a registry key per browser pointing at a small description file.
 const HOST_NAME: &str = "io.github.codingrule.hidely";
-/// The extension that may talk to Hidely. Its address is fixed by the key in its manifest.
-const EXTENSION_ORIGIN: &str = "chrome-extension://mnihmjkcfncphonkdphhcjojghfbmnae/";
+/// The extensions that may talk to Hidely: the copy loaded from source (its ID is fixed by
+/// the key in its manifest) and the copy installed from the Chrome Web Store.
+const EXTENSION_ORIGINS: [&str; 2] = [
+    "chrome-extension://mnihmjkcfncphonkdphhcjojghfbmnae/",
+    "chrome-extension://kifbmljgdnggophdknoliofdafghkgcg/",
+];
 const BROWSER_KEYS: [&str; 2] = [
     r"Software\Google\Chrome\NativeMessagingHosts\io.github.codingrule.hidely",
     r"Software\Microsoft\Edge\NativeMessagingHosts\io.github.codingrule.hidely",
@@ -456,7 +460,7 @@ fn set_browsers_connected(enabled: bool) -> Result<(), String> {
         "description": "Hidely: keeps browser windows with private tabs out of screen capture",
         "path": exe,
         "type": "stdio",
-        "allowed_origins": [EXTENSION_ORIGIN],
+        "allowed_origins": EXTENSION_ORIGINS,
     });
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| format!("Could not create {}: {e}", dir.display()))?;
@@ -1030,6 +1034,12 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     spawn_watcher(handle.clone());
     spawn_pointer_guard(handle.clone());
+
+    // If the browsers were connected by an older version, or Hidely has moved, rewrite the
+    // description so it names this program and every extension this version accepts.
+    if browsers_connected() || host_description_path().is_some_and(|path| path.exists()) {
+        let _ = set_browsers_connected(true);
+    }
 
     // The window starts hidden. Show it unless Hidely was started with Windows, in which
     // case it waits in the tray.

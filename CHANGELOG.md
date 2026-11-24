@@ -4,6 +4,14 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-11-24
+
+### Changed
+
+- The browser extension installed from the Chrome Web Store can connect to Hidely, as well
+  as the copy loaded from source. Browsers connected by 0.3.0 are updated automatically when
+  Hidely starts.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added
@@ -110,6 +118,7 @@ First release.
 - Screen-share test page.
 - Windows installer and portable executable.
 
+[0.3.1]: https://github.com/CodingRule/Hidely/releases/tag/v0.3.1
 [0.3.0]: https://github.com/CodingRule/Hidely/releases/tag/v0.3.0
 [0.2.1]: https://github.com/CodingRule/Hidely/releases/tag/v0.2.1
 [0.2.0]: https://github.com/CodingRule/Hidely/releases/tag/v0.2.0
