@@ -3,8 +3,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hidely capture test</title>
-    <meta name="description" content="Share your screen with this page to see exactly what a viewer sees while Hidely is hiding windows." />
+    <title>Hide a window from screen sharing: test what viewers see | Hidely</title>
+    <meta name="description" content="Check whether a window is hidden from your screen share before a meeting. Hidely is a free, open-source Windows app that keeps the windows you choose out of screen sharing, recordings and screenshots." />
+    <link rel="canonical" href="https://codingrule.github.io/Hidely/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Hidely" />
+    <meta property="og:title" content="Hidely: hide any window from your screen share on Windows" />
+    <meta property="og:description" content="Check whether a window is hidden from your screen share before a meeting. Hidely is a free, open-source Windows app that keeps the windows you choose out of screen sharing, recordings and screenshots." />
+    <meta property="og:url" content="https://codingrule.github.io/Hidely/" />
+    <meta property="og:image" content="https://codingrule.github.io/Hidely/images/screenshot.png" />
+    <meta property="og:image:alt" content="The Hidely window, listing open windows with their capture status" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Hidely",
+        "description": "A Windows tray app that keeps chosen windows out of screen sharing, recordings and screenshots, while they stay visible on your own monitor.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Windows 10 (version 2004 or later), Windows 11",
+        "url": "https://github.com/CodingRule/Hidely",
+        "downloadUrl": "https://github.com/CodingRule/Hidely/releases/latest",
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
     <style>
       :root {
         color-scheme: light dark;
@@ -42,6 +66,8 @@
       }
       h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.2; }
       h2 { margin: 32px 0 8px; font-size: 18px; }
+      h3 { margin: 18px 0 4px; font-size: 16px; }
+      .faq p { max-width: 70ch; }
       p { margin: 0 0 12px; }
       .lede { color: var(--muted); max-width: 62ch; }
       .scope {
@@ -157,6 +183,51 @@
       <h2>Snapshots</h2>
       <p id="no-snapshots" class="lede">Snapshots you take appear here so you can compare before and after.</p>
       <div id="snapshots"></div>
+
+      <section class="faq" aria-labelledby="about">
+        <h2 id="about">About Hidely</h2>
+        <p>
+          <a href="https://github.com/CodingRule/Hidely">Hidely</a> is a free, open-source app for
+          Windows 10 and 11 that keeps the windows you choose out of screen sharing, recordings and
+          screenshots. They stay fully visible and usable on your own monitor. You can protect one
+          window at a time, save profiles of apps for meetings, and use a browser extension that
+          protects a browser window while a private tab is showing.
+          <a href="https://github.com/CodingRule/Hidely/releases/latest">Download the latest release</a>.
+        </p>
+
+        <h3>Can I hide one window from a screen share and still see it myself?</h3>
+        <p>
+          Yes. Windows has a setting that leaves a window out of screen capture. Hidely turns it on
+          for the windows you pick, then checks with Windows that it took before it says so.
+        </p>
+
+        <h3>Does it work with Zoom, Teams, Discord or OBS?</h3>
+        <p>
+          It depends on how each app captures the screen, so it is tested app by app. Screen
+          sharing in Chrome and Edge, the main Windows capture methods, and Discord's entire-screen
+          share are confirmed. Zoom, Teams and OBS have not been checked yet. The
+          <a href="https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md">compatibility record</a>
+          lists exactly what was tested, and this page lets you check your own setup.
+        </p>
+
+        <h3>Can I hide a single browser tab?</h3>
+        <p>
+          Screen capture can only leave out whole windows. The Hidely browser extension protects
+          the whole browser window while a tab you marked private is in front, and releases it when
+          you switch away.
+        </p>
+
+        <h3>Is anything still visible to viewers?</h3>
+        <p>
+          The mouse pointer is still drawn over a hidden window, so Hidely keeps it a plain arrow
+          there. A window opened, or a private tab switched to, can be seen for a moment before it
+          is protected. Hidely only affects screen capture: it does not hide anything from someone
+          looking at your monitor or from programs that list running apps.
+        </p>
+
+        <h3>Is it free?</h3>
+        <p>Yes. It is open source under the MIT licence, with no account and no tracking.</p>
+      </section>
 
       <footer>
         The capture never leaves this page: nothing is recorded or uploaded, the page loads nothing

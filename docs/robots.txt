@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /test-window.html
+
+Sitemap: https://codingrule.github.io/Hidely/sitemap.xml
