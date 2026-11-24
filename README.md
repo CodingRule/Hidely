@@ -212,13 +212,13 @@ Released:
 - [x] **v0.1** Tray app, window list, pins, shortcuts, restore on exit
 - [x] **v0.2** Privacy sessions, meeting profiles, rules for new windows, honest status, configurable shortcuts, diagnostics
 - [x] **v0.2.1** 32-bit apps, apps running as administrator, and capture methods and browsers tested for the compatibility record
+- [x] **v0.3** Settings: start with Windows, update check, remembered window position
+- [x] **v0.3** [Browser extension](docs/EXTENSION.md) for private tabs and sites (tested in Edge)
 
 Next:
 
-- [ ] **v0.4** Zoom, Teams, Discord, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
-- [x] **v0.3** Settings: start with Windows, update check, remembered window position
-- [x] **v0.3** [Browser extension](docs/EXTENSION.md) for private tabs and sites (tested in Edge)
-- [ ] Browser extension checked in Chrome, and published in the Chrome and Edge stores
+- [ ] **v0.4** Zoom, Teams, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Discord's screen share is confirmed. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
+- [ ] **v0.4** Browser extension checked in Chrome, and published in the Chrome and Edge stores
 - [ ] **v1.0** Signed installer and auto-update
 
 Not planned for now:
