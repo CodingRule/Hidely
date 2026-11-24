@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hide a window from screen sharing: test what viewers see | Hidely</title>
-    <meta name="description" content="Check whether a window is hidden from your screen share before a meeting. Hidely is a free, open-source Windows app that keeps the windows you choose out of screen sharing, recordings and screenshots." />
+    <title>Hidely: hide any window from your screen share on Windows</title>
+    <meta name="description" content="Hidely is a free, open-source Windows app that keeps the windows you choose out of screen sharing, streams, recordings and screenshots, while you still see them. Test what your viewers see, right on this page." />
     <link rel="canonical" href="https://codingrule.github.io/Hidely/" />
     <meta name="google-site-verification" content="Rx6goFqbaEuaxWZKImhElExFyyiRsDjZOoLav3JiuWc" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <link rel="icon" href="images/icon.png" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Hidely" />
     <meta property="og:title" content="Hidely: hide any window from your screen share on Windows" />
-    <meta property="og:description" content="Check whether a window is hidden from your screen share before a meeting. Hidely is a free, open-source Windows app that keeps the windows you choose out of screen sharing, recordings and screenshots." />
+    <meta property="og:description" content="Keep the windows you choose out of screen shares, streams, recordings and screenshots, while you still see them. Free and open source." />
     <meta property="og:url" content="https://codingrule.github.io/Hidely/" />
     <meta property="og:image" content="https://codingrule.github.io/Hidely/images/screenshot.png" />
     <meta property="og:image:alt" content="The Hidely window, listing open windows with their capture status" />
@@ -25,302 +27,398 @@
         "operatingSystem": "Windows 10 (version 2004 or later), Windows 11",
         "url": "https://github.com/CodingRule/Hidely",
         "downloadUrl": "https://github.com/CodingRule/Hidely/releases/latest",
+        "softwareVersion": "0.3.1",
         "license": "https://opensource.org/licenses/MIT",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
-    <style>
-      :root {
-        color-scheme: light dark;
-        --bg: #f6f6f7;
-        --surface: #ffffff;
-        --border: #dcdde2;
-        --text: #1b1c1f;
-        --muted: #5f636c;
-        --accent: #c62f33;
-        --accent-text: #ffffff;
-        --stage: #101114;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #17181b;
-          --surface: #222327;
-          --border: #36383e;
-          --text: #ececef;
-          --muted: #a3a7b0;
-          --accent: #e5484d;
-          --stage: #0b0c0e;
-        }
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font: 16px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-      }
-      main {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 40px 16px 64px;
-      }
-      h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.2; }
-      h2 { margin: 32px 0 8px; font-size: 18px; }
-      h3 { margin: 18px 0 4px; font-size: 16px; }
-      .faq p { max-width: 70ch; }
-      p { margin: 0 0 12px; }
-      .lede { color: var(--muted); max-width: 62ch; }
-      .scope {
-        max-width: 70ch;
-        margin-top: 16px;
-        padding: 12px 14px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        background: var(--surface);
-      }
-      .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 12px; }
-      button {
-        font: inherit;
-        font-weight: 600;
-        padding: 9px 16px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        cursor: pointer;
-      }
-      button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-      button:disabled { opacity: 0.5; cursor: default; }
-      button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      #status { min-height: 1.5em; color: var(--muted); }
-      #status.error { color: var(--accent); }
-      .stage {
-        position: relative;
-        aspect-ratio: 16 / 9;
-        background: var(--stage);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-      }
-      video, .stage p {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-      }
-      video { object-fit: contain; }
-      .stage p {
-        display: grid;
-        place-items: center;
-        margin: 0;
-        padding: 16px;
-        text-align: center;
-        color: #a3a7b0;
-      }
-      ol { margin: 0; padding-left: 22px; }
-      li { margin-bottom: 6px; }
-      #snapshots { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-      figure { margin: 0; }
-      figure img { display: block; width: 100%; border: 1px solid var(--border); border-radius: 8px; }
-      figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
-      footer { margin-top: 40px; font-size: 14px; color: var(--muted); }
-      a { color: inherit; }
-      kbd {
-        font: 600 13px/1 ui-monospace, Consolas, monospace;
-        padding: 2px 6px;
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        background: var(--surface);
-      }
-    </style>
+    <link rel="stylesheet" href="site.css" />
   </head>
   <body>
-    <main>
-      <h1>See what your viewers see</h1>
-      <p class="lede">
-        Share your screen with this page and it plays that capture straight back to you. A window
-        protected with Hidely should be missing from the picture below, even though you can still
-        see it on your monitor.
-      </p>
+    <!--
+      THESIS: the page is a split screen. Your screen on one side, the viewers' on the other,
+      and a real-looking Hidely you can poke at deciding what crosses over. It refuses the
+      category default of a hero screenshot plus feature cards.
+      OWN-WORLD: the Hidely app's own look: near-black, see-through glass panes, a red ghost,
+      mac-style window lights, Segoe UI, green for "Protection applied". Nothing purple, no
+      gradients on text.
+      STORY: understand in one viewport what Hidely does (you see it, they don't), believe it
+      by toggling it and by a real recording, then download or star.
+      FIRST VIEWPORT: floating nav with star count and Download; left, the headline and two
+      actions; right, the Hidely app, tilting toward the pointer, whose toggles drive the split
+      desktop directly below.
+      FORM: candidate 3 of the grounded list (split "your screen / their screen" wipe), key 368f8c35.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <a class="skip" href="#main">Skip to content</a>
 
-      <div class="controls">
-        <button id="start" class="primary" type="button">Start screen share</button>
-        <button id="test-window" type="button">Open a test window</button>
-        <button id="snapshot" type="button" disabled>Take snapshot</button>
-        <button id="stop" type="button" disabled>Stop preview</button>
-      </div>
-      <p id="status" role="status">Nothing is being captured.</p>
+    <header class="nav-wrap">
+      <nav class="nav" aria-label="Main">
+        <a class="brand" href="#top" aria-label="Hidely, back to top">
+          <svg class="ghost" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7.5 7.5 0 0 0-7.5 7.5v10.2l2.5-2.1 2.5 2.1 2.5-2.1 2.5 2.1 2.5-2.1 2.5 2.1V10A7.5 7.5 0 0 0 12 2.5Zm-2.8 6.2a1.3 1.6 0 1 1 0 3.2 1.3 1.6 0 0 1 0-3.2Zm5.6 0a1.3 1.6 0 1 1 0 3.2 1.3 1.6 0 0 1 0-3.2Z" fill="currentColor" fill-rule="evenodd" /></svg>
+          <span>Hidely</span>
+        </a>
+        <div class="nav-links">
+          <a href="#how">How it works</a>
+          <a href="#browser">Browser tabs</a>
+          <a href="#tested">What's tested</a>
+          <a href="#try">Try it</a>
+        </div>
+        <div class="nav-actions">
+          <a class="btn-github" href="https://github.com/CodingRule/Hidely" aria-label="Hidely on GitHub">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z" /></svg>
+            <span class="stars" aria-hidden="true">
+              <svg class="icon star" viewBox="0 0 16 16"><path fill="currentColor" d="M8 1.2l2.05 4.16 4.6.67-3.33 3.24.79 4.58L8 11.69 3.89 13.85l.79-4.58L1.35 6.03l4.6-.67L8 1.2Z" /></svg>
+              <span id="star-count">Star</span>
+            </span>
+          </a>
+          <a class="btn-primary small" href="https://github.com/CodingRule/Hidely/releases/latest">
+            Download
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8m0 0L4.8 7.3M8 10.5l3.2-3.2M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </div>
+      </nav>
+    </header>
 
-      <div class="stage">
-        <p id="placeholder">Your shared screen will appear here.</p>
-        <video id="preview" autoplay muted playsinline hidden></video>
-      </div>
+    <main id="main">
+      <!-- ---------------------------------------------------------------- hero -->
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <h1>Share your screen.<br />Keep the rest to yourself.</h1>
+          <p class="lede">
+            Hidely keeps the windows you pick out of screen shares, streams, recordings and
+            screenshots. They stay right there on your monitor. Your viewers just don't get them.
+          </p>
+          <div class="cta">
+            <a class="btn-primary" href="https://github.com/CodingRule/Hidely/releases/latest">
+              <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1 2.6 6.7 1.8v5.6H1V2.6Zm6.4-.9L15 .6v6.8H7.4V1.7ZM1 8.1h5.7v5.6L1 12.9V8.1Zm6.4 0H15v6.8l-7.6-1.1V8.1Z" /></svg>
+              Download for Windows
+            </a>
+            <a class="btn-ghost" href="https://github.com/CodingRule/Hidely">
+              <svg class="icon star" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.2l2.05 4.16 4.6.67-3.33 3.24.79 4.58L8 11.69 3.89 13.85l.79-4.58L1.35 6.03l4.6-.67L8 1.2Z" /></svg>
+              Star on GitHub
+            </a>
+          </div>
+          <p class="fine">Free and open source · Windows 10 (2004+) and 11 · v0.3.1</p>
+        </div>
 
-      <p class="scope">
-        <strong>What this proves, and what it doesn't.</strong> This preview shows the output of
-        one capture method: this browser, sharing what you picked in its prompt. Zoom, Teams,
-        OBS and other apps capture the screen in their own ways, and sharing a single window or
-        tab behaves differently from sharing the entire screen. Check each app and mode you
-        rely on in that app's own preview before a meeting.
-      </p>
-
-      <h2>How to test</h2>
-      <ol>
-        <li>Press <strong>Open a test window</strong>. A small yellow window with a clock appears. It has nothing private in it.</li>
-        <li>Press <strong>Start screen share</strong> and pick <strong>Entire screen</strong> in the browser's prompt.</li>
-        <li>Put the test window where you can see it both on your monitor and in the preview.</li>
-        <li>In Hidely, press <strong>Protect</strong> next to "Hidely test window". Its status should read <strong>Protection applied</strong>.</li>
-        <li>Compare: the test window should still be on your monitor, and gone from the preview. Take a snapshot before and after if you want to look closely.</li>
-        <li>Press <strong>Unprotect</strong> or end the session in Hidely. The test window should return to the preview.</li>
-      </ol>
-      <p class="lede">
-        If the test window stays in the preview while Hidely says "Protection applied", this
-        capture method is not covered. Please
-        <a href="https://github.com/CodingRule/Hidely/issues/new/choose">report it</a> with your
-        browser and Windows versions.
-      </p>
-
-      <h2>Snapshots</h2>
-      <p id="no-snapshots" class="lede">Snapshots you take appear here so you can compare before and after.</p>
-      <div id="snapshots"></div>
-
-      <section class="faq" aria-labelledby="about">
-        <h2 id="about">About Hidely</h2>
-        <p>
-          <a href="https://github.com/CodingRule/Hidely">Hidely</a> is a free, open-source app for
-          Windows 10 and 11 that keeps the windows you choose out of screen sharing, recordings and
-          screenshots. They stay fully visible and usable on your own monitor. You can protect one
-          window at a time, save profiles of apps for meetings, and use a browser extension that
-          protects a browser window while a private tab is showing.
-          <a href="https://github.com/CodingRule/Hidely/releases/latest">Download the latest release</a>.
-        </p>
-
-        <h3>Can I hide one window from a screen share and still see it myself?</h3>
-        <p>
-          Yes. Windows has a setting that leaves a window out of screen capture. Hidely turns it on
-          for the windows you pick, then checks with Windows that it took before it says so.
-        </p>
-
-        <h3>Does it work with Zoom, Teams, Discord or OBS?</h3>
-        <p>
-          It depends on how each app captures the screen, so it is tested app by app. Screen
-          sharing in Chrome and Edge, the main Windows capture methods, and Discord's entire-screen
-          share are confirmed. Zoom, Teams and OBS have not been checked yet. The
-          <a href="https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md">compatibility record</a>
-          lists exactly what was tested, and this page lets you check your own setup.
-        </p>
-
-        <h3>Can I hide a single browser tab?</h3>
-        <p>
-          Screen capture can only leave out whole windows. The Hidely browser extension protects
-          the whole browser window while a tab you marked private is in front, and releases it when
-          you switch away.
-        </p>
-
-        <h3>Is anything still visible to viewers?</h3>
-        <p>
-          The mouse pointer is still drawn over a hidden window, so Hidely keeps it a plain arrow
-          there. A window opened, or a private tab switched to, can be seen for a moment before it
-          is protected. Hidely only affects screen capture: it does not hide anything from someone
-          looking at your monitor or from programs that list running apps.
-        </p>
-
-        <h3>Is it free?</h3>
-        <p>Yes. It is open source under the MIT licence, with no account and no tracking.</p>
+        <!-- The app, as a toy: its toggles drive the split desktop below. -->
+        <div class="tilt" id="tilt">
+          <div class="app" id="app" role="group" aria-labelledby="app-title">
+            <div class="app-bar">
+              <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="app-brand" id="app-title">
+                <svg class="ghost" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7.5 7.5 0 0 0-7.5 7.5v10.2l2.5-2.1 2.5 2.1 2.5-2.1 2.5 2.1 2.5-2.1 2.5 2.1V10A7.5 7.5 0 0 0 12 2.5Zm-2.8 6.2a1.3 1.6 0 1 1 0 3.2 1.3 1.6 0 0 1 0-3.2Zm5.6 0a1.3 1.6 0 1 1 0 3.2 1.3 1.6 0 0 1 0-3.2Z" fill="currentColor" fill-rule="evenodd" /></svg>
+                HIDELY
+              </span>
+              <span class="pill" id="app-pill"><i></i><span id="app-summary">Session on · 2 protected</span></span>
+            </div>
+            <ul class="rows">
+              <li class="row" data-win="music">
+                <span class="row-icon music" aria-hidden="true"></span>
+                <span class="row-name">Night Drive<small>music</small></span>
+                <span class="status"></span>
+                <button type="button" class="toggle" aria-pressed="false">Protect</button>
+              </li>
+              <li class="row" data-win="vault">
+                <span class="row-icon vault" aria-hidden="true"></span>
+                <span class="row-name">Vault: passwords<small>vault</small></span>
+                <span class="status"></span>
+                <button type="button" class="toggle" aria-pressed="true">Unprotect</button>
+              </li>
+              <li class="row" data-win="chat">
+                <span class="row-icon chat" aria-hidden="true"></span>
+                <span class="row-name">Direct messages<small>chat</small></span>
+                <span class="status"></span>
+                <button type="button" class="toggle" aria-pressed="true">Unprotect</button>
+              </li>
+            </ul>
+            <p class="app-hint">Try it: press Protect or Unprotect, then look below.</p>
+            <span class="glare" aria-hidden="true"></span>
+          </div>
+        </div>
       </section>
 
-      <footer>
-        The capture never leaves this page: nothing is recorded or uploaded, the page loads nothing
-        from other sites, and snapshots exist only in this tab until you close it. Part of
-        <a href="https://github.com/CodingRule/Hidely">Hidely</a>.
-      </footer>
+      <!-- ------------------------------------------------------------ the split -->
+      <section class="split-section" aria-labelledby="split-title">
+        <h2 id="split-title" class="sr-only">Your screen compared with what viewers see</h2>
+        <div class="stage" id="stage">
+          <!-- Your screen: everything is there. -->
+          <div class="desk mine" aria-hidden="true">
+            <div class="win win-music" data-win="music">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Night Drive</div>
+              <div class="music">
+                <div class="cover"></div>
+                <div class="track"><b>Night Drive</b><span>Demo Artist · 3:42</span><div class="bar"><i></i></div></div>
+              </div>
+            </div>
+            <div class="win win-vault" data-win="vault">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Vault</div>
+              <ul class="vault">
+                <li><b>github.com</b><span>hunter2-but-longer</span></li>
+                <li><b>bank.example</b><span>Tr0ub4dor&amp;3</span></li>
+                <li><b>email</b><span>correct-horse-battery</span></li>
+              </ul>
+            </div>
+            <div class="win win-chat" data-win="chat">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Direct messages</div>
+              <div class="chat">
+                <p class="them">can you send me the stream key?</p>
+                <p class="me">sure, it's live_9f3a-…-c21e</p>
+                <p class="them">thanks! don't show it on stream lol</p>
+              </div>
+            </div>
+            <div class="win win-slides">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Q3 plan.pptx</div>
+              <div class="slides"><b>Q3 plan</b><span></span><span></span><span></span></div>
+            </div>
+            <div class="taskbar"><i></i><i></i><i></i><i></i></div>
+          </div>
+
+          <!-- What viewers see: the same desktop, clipped to the right of the divider. -->
+          <div class="desk theirs" id="theirs" aria-hidden="true">
+            <div class="win win-music" data-win="music">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Night Drive</div>
+              <div class="music">
+                <div class="cover"></div>
+                <div class="track"><b>Night Drive</b><span>Demo Artist · 3:42</span><div class="bar"><i></i></div></div>
+              </div>
+            </div>
+            <div class="win win-vault" data-win="vault">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Vault</div>
+              <ul class="vault">
+                <li><b>github.com</b><span>hunter2-but-longer</span></li>
+                <li><b>bank.example</b><span>Tr0ub4dor&amp;3</span></li>
+                <li><b>email</b><span>correct-horse-battery</span></li>
+              </ul>
+            </div>
+            <div class="win win-chat" data-win="chat">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Direct messages</div>
+              <div class="chat">
+                <p class="them">can you send me the stream key?</p>
+                <p class="me">sure, it's live_9f3a-…-c21e</p>
+                <p class="them">thanks! don't show it on stream lol</p>
+              </div>
+            </div>
+            <div class="win win-slides">
+              <div class="win-bar"><span class="lights"><i></i><i></i><i></i></span>Q3 plan.pptx</div>
+              <div class="slides"><b>Q3 plan</b><span></span><span></span><span></span></div>
+            </div>
+            <div class="taskbar"><i></i><i></i><i></i><i></i></div>
+            <span class="rec"><i></i>LIVE</span>
+          </div>
+
+          <span class="side-label left">Your screen</span>
+          <span class="side-label right">What viewers see</span>
+          <div class="divider" id="divider" role="slider" tabindex="0" aria-label="Move the divider between your screen and what viewers see" aria-valuemin="5" aria-valuemax="95" aria-valuenow="50">
+            <span class="handle" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M6 4 2 8l4 4M10 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+          </div>
+        </div>
+        <p class="stage-note">An illustration. Drag the divider, or use the arrow keys on it. The real thing is below.</p>
+      </section>
+
+      <!-- ---------------------------------------------------------------- proof -->
+      <section class="proof" aria-labelledby="proof-title">
+        <div class="proof-copy">
+          <h2 id="proof-title">The real thing, recorded</h2>
+          <p>
+            This is an actual screen recording made on Windows 11. Hidely sits on the right. Press
+            <strong>Protect</strong> on Spotify and it disappears from the recording, while it kept
+            playing on the monitor the whole time. Press <strong>Unprotect</strong> and it is back.
+          </p>
+        </div>
+        <img class="proof-media" src="images/demo.gif" width="1100" height="438" loading="lazy" decoding="async" alt="Screen recording: Spotify next to Hidely. Clicking Protect removes Spotify from the recording and Hidely shows Protection applied; clicking Unprotect brings it back." />
+      </section>
+
+      <!-- ----------------------------------------------------------- audiences -->
+      <section class="who" aria-labelledby="who-title">
+        <h2 id="who-title">Made for the moment you hit “Share”</h2>
+        <dl class="who-list">
+          <div>
+            <dt>Streaming</dt>
+            <dd>Keep DMs, stream keys and notifications off stream, even when you alt-tab into them live. Protect your chat app once and it stays off the broadcast.</dd>
+          </div>
+          <div>
+            <dt>Meetings and classes</dt>
+            <dd>Save a profile with your password manager and messages. Start a session before the call and anything those apps open stays out of the share, too.</dd>
+          </div>
+          <div>
+            <dt>Developers</dt>
+            <dd>Keep a terminal full of tokens next to the slides. Script it with <code>hidely-cli</code>, or read the 150 lines that do the work.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- ---------------------------------------------------------------- how -->
+      <section class="how" id="how" aria-labelledby="how-title">
+        <div class="how-copy">
+          <h2 id="how-title">How it works</h2>
+          <p>
+            Windows can leave a window out of every capture with one documented call,
+            <code>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</code>. The catch: it only
+            works from inside the app that owns the window.
+          </p>
+          <ol class="steps">
+            <li><b>Make the call from inside the app.</b> Hidely writes a 36-byte stub into the target app (20 bytes for 32-bit apps), runs it once, and frees it. No DLL stays behind and nothing is patched.</li>
+            <li><b>Don't trust "it worked".</b> Hidely reads the setting back from Windows. Only if Windows agrees does the window show <span class="ok">Protection applied</span>.</li>
+            <li><b>Always put it back.</b> Ending a session or quitting makes every window capturable again. If Hidely is killed, the next start restores them.</li>
+          </ol>
+          <p class="fine-link"><a href="https://github.com/CodingRule/Hidely/blob/main/crates/hidely-core/src/inject.rs">Read the code in inject.rs</a></p>
+        </div>
+        <pre class="code" aria-label="The x64 stub Hidely runs inside the target app"><code><span class="c">; runs in the target app, then freed</span>
+sub  rsp, 28h
+mov  rcx, <span class="v">hwnd</span>
+mov  edx, <span class="v">11h</span>          <span class="c">; WDA_EXCLUDEFROMCAPTURE</span>
+mov  rax, <span class="v">SetWindowDisplayAffinity</span>
+call rax
+add  rsp, 28h
+ret                    <span class="c">; BOOL -> exit code</span></code></pre>
+      </section>
+
+      <!-- ------------------------------------------------------------ browser -->
+      <section class="browser" id="browser" aria-labelledby="browser-title">
+        <div class="popup" aria-hidden="true">
+          <div class="popup-head">
+            <svg class="ghost" viewBox="0 0 24 24"><path d="M12 2.5a7.5 7.5 0 0 0-7.5 7.5v10.2l2.5-2.1 2.5 2.1 2.5-2.1 2.5 2.1 2.5-2.1 2.5 2.1V10A7.5 7.5 0 0 0 12 2.5Zm-2.8 6.2a1.3 1.6 0 1 1 0 3.2 1.3 1.6 0 0 1 0-3.2Zm5.6 0a1.3 1.6 0 1 1 0 3.2 1.3 1.6 0 0 1 0-3.2Z" fill="currentColor" fill-rule="evenodd" /></svg>
+            <b>Hidely</b><span class="ok">Connected</span>
+          </div>
+          <div class="check"><span class="box"></span><span><b>Keep this tab private</b><small>Until you close it.</small></span></div>
+          <div class="check on"><span class="box"></span><span><b>Always keep mail.example.com private</b><small>Every tab on this site.</small></span></div>
+          <p class="ok strong">This window is being kept out of screen capture.</p>
+        </div>
+        <div class="browser-copy">
+          <h2 id="browser-title">Private tabs, too</h2>
+          <p>
+            Capture can only leave out whole windows, so the Hidely extension for Chrome and Edge
+            watches which tab is in front. Switch to a tab or site you marked private and that
+            browser window drops out of the share. Switch away and it comes back.
+          </p>
+          <p class="muted">It talks only to the Hidely app on your computer. No network requests.</p>
+          <p class="fine-link"><a href="https://github.com/CodingRule/Hidely/blob/main/docs/EXTENSION.md">Set up the extension</a></p>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------- tested -->
+      <section class="tested" id="tested" aria-labelledby="tested-title">
+        <h2 id="tested-title">What's tested, honestly</h2>
+        <div class="tested-grid">
+          <div>
+            <h3><span class="dot ok-dot" aria-hidden="true"></span>Confirmed</h3>
+            <ul>
+              <li>Discord screen share, entire screen</li>
+              <li>Chrome and Edge screen sharing, entire screen</li>
+              <li>Windows' own capture methods: GDI, Desktop Duplication, Windows Graphics Capture</li>
+              <li>32-bit and 64-bit apps</li>
+            </ul>
+          </div>
+          <div>
+            <h3><span class="dot open-dot" aria-hidden="true"></span>Not checked yet</h3>
+            <ul>
+              <li>Zoom, Teams and OBS</li>
+              <li>Firefox, and Windows 10</li>
+              <li><a href="https://github.com/CodingRule/Hidely/issues/1">Help test one</a> in ten minutes</li>
+            </ul>
+          </div>
+          <div>
+            <h3><span class="dot no-dot" aria-hidden="true"></span>Won't work</h3>
+            <ul>
+              <li>Games with anti-cheat block it. Don't use it there.</li>
+              <li>It only affects capture, not Task Manager or your network.</li>
+              <li>A new window can be seen for a moment before it's protected.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="fine-link"><a href="https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md">Full compatibility record, with versions</a></p>
+      </section>
+
+      <!-- ---------------------------------------------------------------- try -->
+      <section class="try" id="try" aria-labelledby="try-title">
+        <div class="try-copy">
+          <h2 id="try-title">See what your viewers see</h2>
+          <p>
+            Share your screen with this page and it plays that capture straight back to you. A
+            window protected with Hidely should be missing from the preview, even though you can
+            still see it on your monitor. The capture never leaves this page.
+          </p>
+        </div>
+        <div class="controls">
+          <button id="start" class="btn-primary" type="button">Start screen share</button>
+          <button id="test-window" class="btn-ghost" type="button">Open a test window</button>
+          <button id="snapshot" class="btn-ghost" type="button" disabled>Take snapshot</button>
+          <button id="stop" class="btn-ghost" type="button" disabled>Stop preview</button>
+        </div>
+        <p id="status" class="status" role="status">Nothing is being captured.</p>
+        <div class="preview">
+          <p id="placeholder">Your shared screen will appear here.</p>
+          <video id="preview" autoplay muted playsinline hidden></video>
+        </div>
+        <ol class="try-steps">
+          <li>Press <b>Open a test window</b>. A small yellow window with a clock appears. It has nothing private in it.</li>
+          <li>Press <b>Start screen share</b> and pick <b>Entire screen</b>.</li>
+          <li>In Hidely, press <b>Protect</b> next to "Hidely test window" and wait for <b>Protection applied</b>.</li>
+          <li>It should still be on your monitor and gone from the preview. Unprotect it and it comes back.</li>
+        </ol>
+        <p class="muted">
+          This checks the browser's own capture only. Zoom, Teams and OBS capture in their own
+          ways, so check those in their own preview too. If the window stays visible,
+          <a href="https://github.com/CodingRule/Hidely/issues/new/choose">tell us</a>.
+        </p>
+        <div id="snapshots" class="snapshots"></div>
+      </section>
+
+      <!-- ---------------------------------------------------------------- faq -->
+      <section class="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Questions</h2>
+        <details>
+          <summary>Can I hide one window from a screen share and still see it myself?</summary>
+          <p>Yes. Windows has a setting that leaves a window out of screen capture. Hidely turns it on for the windows you pick, then checks with Windows that it took before it says so.</p>
+        </details>
+        <details>
+          <summary>Does it work with Zoom, Teams, Discord or OBS?</summary>
+          <p>It depends on how each app captures the screen, so it's tested app by app. Discord's entire-screen share and Chrome and Edge screen sharing are confirmed. Zoom, Teams and OBS haven't been checked yet; the test above lets you check your own setup.</p>
+        </details>
+        <details>
+          <summary>Is anything still visible to viewers?</summary>
+          <p>Captures still draw the mouse pointer, so Hidely keeps it a plain arrow over protected windows. A window that just opened, or a private tab you switched to, can be seen for a moment before it's protected.</p>
+        </details>
+        <details>
+          <summary>Why does Windows warn me when I install it?</summary>
+          <p>The installer isn't code-signed yet, so SmartScreen shows "Windows protected your PC". Choose More info, then Run anyway. Some antivirus may flag it too, because writing into another app is also what malware does. The code is open so you can check.</p>
+        </details>
+        <details>
+          <summary>Is it free? Does it track me?</summary>
+          <p>Free and open source under the MIT licence. No account, no analytics, nothing sent anywhere. See the <a href="privacy.html">privacy policy</a>.</p>
+        </details>
+      </section>
+
+      <!-- ------------------------------------------------------------ closing -->
+      <section class="closing" aria-labelledby="closing-title">
+        <h2 id="closing-title">Share your screen without the second thoughts.</h2>
+        <div class="cta">
+          <a class="btn-primary" href="https://github.com/CodingRule/Hidely/releases/latest">Download for Windows</a>
+          <a class="btn-ghost" href="https://github.com/CodingRule/Hidely">Star on GitHub</a>
+        </div>
+      </section>
     </main>
 
-    <script>
-      const video = document.getElementById("preview");
-      const placeholder = document.getElementById("placeholder");
-      const status = document.getElementById("status");
-      const startButton = document.getElementById("start");
-      const stopButton = document.getElementById("stop");
-      const snapshotButton = document.getElementById("snapshot");
-      const snapshots = document.getElementById("snapshots");
-      let stream = null;
+    <footer class="footer">
+      <p>
+        Built on <a href="https://github.com/ahossu/DWMShield">DWMShield</a> by Alexandru Hossu,
+        who discovered the technique.
+      </p>
+      <p class="footer-links">
+        <a href="https://github.com/CodingRule/Hidely">GitHub</a>
+        <a href="https://github.com/CodingRule/Hidely/releases">Releases</a>
+        <a href="https://github.com/CodingRule/Hidely/blob/main/CONTRIBUTING.md">Contribute</a>
+        <a href="privacy.html">Privacy</a>
+      </p>
+      <p class="muted">
+        MIT licence · © 2026 Elure. The screen-share test stays in your browser. The only thing
+        this page asks another site for is the GitHub star count.
+      </p>
+    </footer>
 
-      function setStatus(text, isError = false) {
-        status.textContent = text;
-        status.classList.toggle("error", isError);
-      }
-
-      function setCapturing(capturing) {
-        video.hidden = !capturing;
-        placeholder.hidden = capturing;
-        startButton.disabled = capturing;
-        stopButton.disabled = !capturing;
-        snapshotButton.disabled = !capturing;
-      }
-
-      function stop() {
-        if (stream) stream.getTracks().forEach((track) => track.stop());
-        stream = null;
-        video.srcObject = null;
-        setCapturing(false);
-        setStatus("Preview stopped. Nothing is being captured.");
-      }
-
-      startButton.addEventListener("click", async () => {
-        if (!navigator.mediaDevices?.getDisplayMedia) {
-          setStatus("This browser can't share the screen. Try a current Chrome, Edge or Firefox on desktop.", true);
-          return;
-        }
-        try {
-          stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-        } catch (error) {
-          setStatus(
-            error.name === "NotAllowedError"
-              ? "Screen sharing was cancelled. Press Start to try again."
-              : `Couldn't start screen sharing: ${error.message}`,
-            true
-          );
-          return;
-        }
-        video.srcObject = stream;
-        const track = stream.getVideoTracks()[0];
-        track.addEventListener("ended", stop);
-        const surface = track.getSettings().displaySurface;
-        setCapturing(true);
-        setStatus(
-          surface && surface !== "monitor"
-            ? `Previewing a single ${surface}. Pick "Entire screen" to compare windows side by side.`
-            : "Previewing your screen as this browser captures it."
-        );
-      });
-
-      stopButton.addEventListener("click", stop);
-      // Leaving the page must never leave a capture running.
-      window.addEventListener("pagehide", () => stream?.getTracks().forEach((track) => track.stop()));
-
-      document.getElementById("test-window").addEventListener("click", () => {
-        const opened = window.open("test-window.html", "hidely-test-window", "popup,width=420,height=300");
-        if (!opened) setStatus("The browser blocked the test window. Allow pop-ups for this page and try again.", true);
-      });
-
-      snapshotButton.addEventListener("click", () => {
-        if (!video.videoWidth) return;
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
-        const figure = document.createElement("figure");
-        const image = document.createElement("img");
-        image.src = canvas.toDataURL("image/png");
-        image.alt = "Snapshot of the shared screen";
-        const caption = document.createElement("figcaption");
-        caption.textContent = new Date().toLocaleTimeString();
-        figure.append(image, caption);
-        snapshots.prepend(figure);
-        document.getElementById("no-snapshots").hidden = true;
-      });
-    </script>
+    <script src="site.js"></script>
   </body>
 </html>
