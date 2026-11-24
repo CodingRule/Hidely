@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod art;
+mod native_host;
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -12,7 +13,8 @@ use base64::Engine as _;
 use hidely_core::engine::{EndReport, Engine, Source, Status, Summary, WATCH_INTERVAL_MS};
 use hidely_core::model::{AppRule, Profile, Settings, Shortcuts, DEFAULT_RESTORE, DEFAULT_TOGGLE};
 use hidely_core::{
-    data_dir, elevation, icon_rgba, list_windows, os_version, overlay, pointer, Cloaker, WindowInfo,
+    data_dir, elevation, icon_rgba, list_windows, os_version, overlay, pointer, system, Cloaker,
+    WindowInfo,
 };
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -24,6 +26,18 @@ use tauri::{
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 const HUD_MILLIS: u64 = 1600;
+/// The name of Hidely's entry in the list of programs that start with Windows.
+const STARTUP_NAME: &str = "Hidely";
+const RELEASES_URL: &str = "https://github.com/CodingRule/Hidely/releases/latest";
+
+/// How browsers find Hidely: a registry key per browser pointing at a small description file.
+const HOST_NAME: &str = "io.github.codingrule.hidely";
+/// The extension that may talk to Hidely. Its address is fixed by the key in its manifest.
+const EXTENSION_ORIGIN: &str = "chrome-extension://mnihmjkcfncphonkdphhcjojghfbmnae/";
+const BROWSER_KEYS: [&str; 2] = [
+    r"Software\Google\Chrome\NativeMessagingHosts\io.github.codingrule.hidely",
+    r"Software\Microsoft\Edge\NativeMessagingHosts\io.github.codingrule.hidely",
+];
 
 /// The two global shortcuts.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -176,6 +190,11 @@ struct Snapshot {
     watch_interval_ms: u64,
     /// Hidely is running as administrator, so it can reach apps that do too.
     elevated: bool,
+    version: &'static str,
+    starts_with_windows: bool,
+    check_updates_at_startup: bool,
+    /// Chrome and Edge have been told where to find Hidely for the browser extension.
+    browsers_connected: bool,
 }
 
 #[derive(Serialize)]
@@ -266,6 +285,10 @@ fn snapshot(app: AppHandle, state: State<AppState>) -> Snapshot {
         notices: lock(&state.notices).clone(),
         watch_interval_ms: WATCH_INTERVAL_MS,
         elevated: elevation::is_elevated(),
+        version: env!("CARGO_PKG_VERSION"),
+        starts_with_windows: system::starts_with_windows(STARTUP_NAME),
+        check_updates_at_startup: settings.check_updates_at_startup,
+        browsers_connected: browsers_connected(),
     }
 }
 
@@ -395,6 +418,124 @@ fn reset_shortcuts(app: AppHandle) -> Result<(), String> {
     let result = reset_shortcuts_action(&app);
     refresh(&app);
     result
+}
+
+fn host_description_path() -> Option<PathBuf> {
+    data_dir().map(|dir| dir.join("browser-host.json"))
+}
+
+/// Whether Chrome and Edge currently point at this copy of Hidely.
+fn browsers_connected() -> bool {
+    let Some(path) = host_description_path() else { return false };
+    let expected = path.display().to_string();
+    path.exists()
+        && BROWSER_KEYS
+            .iter()
+            .all(|key| system::user_key_default(key).as_deref() == Some(expected.as_str()))
+}
+
+/// Let the Hidely browser extension talk to this copy of Hidely, or stop letting it.
+///
+/// Connecting writes a small file that names this program and the one extension allowed to
+/// use it, and tells Chrome and Edge where that file is. Nothing is installed in the
+/// browser itself.
+#[tauri::command(async)]
+fn set_browsers_connected(enabled: bool) -> Result<(), String> {
+    let path = host_description_path().ok_or("Could not find Hidely's data folder.")?;
+    let refused = |code: u32| format!("Windows would not update the browser settings (error {code}).");
+    if !enabled {
+        for key in BROWSER_KEYS {
+            system::set_user_key_default(key, None).map_err(refused)?;
+        }
+        let _ = std::fs::remove_file(&path);
+        return Ok(());
+    }
+    let exe = std::env::current_exe().map_err(|e| format!("Could not find Hidely's own program file: {e}"))?;
+    let description = serde_json::json!({
+        "name": HOST_NAME,
+        "description": "Hidely: keeps browser windows with private tabs out of screen capture",
+        "path": exe,
+        "type": "stdio",
+        "allowed_origins": [EXTENSION_ORIGIN],
+    });
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| format!("Could not create {}: {e}", dir.display()))?;
+    }
+    std::fs::write(&path, serde_json::to_string_pretty(&description).unwrap_or_default())
+        .map_err(|e| format!("Could not write {}: {e}", path.display()))?;
+    for key in BROWSER_KEYS {
+        system::set_user_key_default(key, Some(&path.display().to_string())).map_err(refused)?;
+    }
+    Ok(())
+}
+
+/// A request from the browser extension, passed on by the copy of Hidely the browser
+/// started. Only browser windows are accepted, and the extension can only release
+/// windows it protected itself.
+fn extension_request(app: &AppHandle, protect: bool, hwnd: isize) {
+    let is_browser = hidely_core::owner_pid(hwnd)
+        .map(|pid| hidely_core::process_identity(pid).exe)
+        .is_some_and(|exe| native_host::BROWSERS.contains(&exe.as_str()));
+    if !is_browser {
+        return;
+    }
+    let app = app.clone();
+    // Off the main thread: changing a window can take a moment.
+    std::thread::spawn(move || {
+        if protect {
+            let already = app.state::<AppState>().engine().is_protecting(hwnd);
+            if !already {
+                apply_one(&app, hwnd, true, Source::Extension);
+            }
+        } else if app.state::<AppState>().engine().is_by_extension(hwnd) {
+            apply_one(&app, hwnd, false, Source::Extension);
+        }
+        refresh(&app);
+    });
+}
+
+/// The window handle after `flag` in a list of arguments, if there is one.
+fn window_argument(args: &[String], flag: &str) -> Option<isize> {
+    let index = args.iter().position(|argument| argument == flag)?;
+    args.get(index + 1)?.parse().ok()
+}
+
+/// Start Hidely in the tray when the user signs in to Windows, or stop doing so.
+#[tauri::command(async)]
+fn set_start_with_windows(enabled: bool) -> Result<(), String> {
+    let command = if enabled {
+        let exe = std::env::current_exe().map_err(|e| format!("Could not find Hidely's own program file: {e}"))?;
+        Some(format!("\"{}\" --minimized", exe.display()))
+    } else {
+        None
+    };
+    system::set_starts_with_windows(STARTUP_NAME, command.as_deref())
+        .map_err(|code| format!("Windows would not change the startup list (error {code})."))
+}
+
+/// Choose whether Hidely asks GitHub for the latest version when it starts.
+#[tauri::command(async)]
+fn set_check_updates(state: State<AppState>, enabled: bool) -> Result<(), String> {
+    edit_settings(&state, |settings| {
+        settings.check_updates_at_startup = enabled;
+        Ok(())
+    })
+}
+
+/// Whether `latest` (a release tag such as `v0.3.0`) is newer than this build.
+#[tauri::command(async)]
+fn is_newer(latest: String) -> bool {
+    system::is_newer_version(&latest, env!("CARGO_PKG_VERSION"))
+}
+
+/// Open the download page for the latest release in the user's browser.
+#[tauri::command(async)]
+fn open_releases() -> Result<(), String> {
+    if system::open_in_browser(RELEASES_URL) {
+        Ok(())
+    } else {
+        Err(format!("Could not open your browser. The page is {RELEASES_URL}"))
+    }
 }
 
 /// Close Hidely and start it again as administrator, so it can protect windows of apps
@@ -888,11 +1029,30 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     update_tray(&handle);
 
     spawn_watcher(handle.clone());
-    spawn_pointer_guard(handle);
+    spawn_pointer_guard(handle.clone());
+
+    // The window starts hidden. Show it unless Hidely was started with Windows, in which
+    // case it waits in the tray.
+    if !std::env::args().any(|argument| argument == "--minimized") {
+        open_main(&handle);
+    }
     Ok(())
 }
 
 fn main() {
+    // Started by a browser for the extension: talk to it and show nothing.
+    if native_host::requested() {
+        native_host::run();
+        return;
+    }
+    // A window request with no app running has nowhere to go. Do not start the app for it.
+    let launch: Vec<String> = std::env::args().collect();
+    let is_window_request =
+        launch.iter().any(|argument| argument == "--protect-window" || argument == "--unprotect-window");
+    if is_window_request && !system::is_app_running() {
+        return;
+    }
+
     // Started by `restart_elevated`: let the copy we are replacing finish closing first.
     let arguments: Vec<String> = std::env::args().collect();
     if let Some(pid) = arguments
@@ -903,6 +1063,8 @@ fn main() {
     {
         elevation::wait_for_exit(pid, 15_000);
     }
+
+    system::mark_app_running();
 
     // Anything a previous run left excluded (because it was killed) is restored here,
     // before the window opens. The engine remembers how that went.
@@ -951,10 +1113,27 @@ fn main() {
                 toggle_session(app);
             } else if args.iter().any(|arg| arg == "--end-session") {
                 restore_all(app);
+            } else if args.iter().any(|arg| arg == "--quit") {
+                app.exit(0);
+            } else if let Some(hwnd) = window_argument(&args, "--protect-window") {
+                extension_request(app, true, hwnd);
+            } else if let Some(hwnd) = window_argument(&args, "--unprotect-window") {
+                extension_request(app, false, hwnd);
             } else {
                 open_main(app);
             }
         }))
+        // Remember where the main window was. The HUD is placed by code every time,
+        // and whether the window is shown is decided below, so neither is restored.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_denylist(&["hud"])
+                .with_state_flags(
+                    tauri_plugin_window_state::StateFlags::all()
+                        & !tauri_plugin_window_state::StateFlags::VISIBLE,
+                )
+                .build(),
+        )
         .manage(AppState {
             engine: Arc::clone(&engine),
             settings: Mutex::new(settings),
@@ -979,6 +1158,11 @@ fn main() {
             set_shortcut,
             reset_shortcuts,
             restart_elevated,
+            set_start_with_windows,
+            set_check_updates,
+            set_browsers_connected,
+            is_newer,
+            open_releases,
             diagnostics,
             save_diagnostics,
             window_icon

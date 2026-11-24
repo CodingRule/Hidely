@@ -48,9 +48,11 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           cp target/release/Hidely.exe "Hidely_${version}_x64-portable.exe"
           cp target/release/hidely-cli.exe "hidely-cli_${version}_x64.exe"
+          (cd extension && 7z a -tzip "../hidely-extension_${version}.zip" . > /dev/null)
           gh release create "$GITHUB_REF_NAME" \
             target/release/bundle/nsis/*-setup.exe \
             Hidely_*_x64-portable.exe \
             hidely-cli_*_x64.exe \
+            hidely-extension_*.zip \
             --title "Hidely $GITHUB_REF_NAME" \
             --notes-file .github/release-notes.md

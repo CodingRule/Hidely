@@ -77,6 +77,8 @@
           <div class="sidebar-end">
             <dl id="hotkeys" class="hotkeys" aria-label="Keyboard shortcuts"></dl>
             <div class="links">
+              <button id="update-available" type="button" class="link update" hidden></button>
+              <button id="open-settings" type="button" class="link">Settings</button>
               <button id="open-shortcuts" type="button" class="link">Change shortcuts</button>
               <button id="open-diagnostics" type="button" class="link">Diagnostics</button>
               <button id="restart-elevated" type="button" class="link" hidden>Restart as administrator</button>
@@ -189,6 +191,44 @@
         <div class="dialog-actions">
           <button id="shortcut-reset" type="button">Restore defaults</button>
           <span class="spacer"></span>
+          <button type="submit" value="close" class="primary">Done</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <form method="dialog">
+        <h2 id="settings-title">Settings</h2>
+        <label class="check">
+          <input id="setting-startup" type="checkbox" />
+          <span>Start Hidely when I sign in to Windows</span>
+        </label>
+        <p class="note indent">It opens in the tray without showing this window.</p>
+        <label class="check">
+          <input id="setting-updates" type="checkbox" />
+          <span>Check for a new version when Hidely starts</span>
+        </label>
+        <p class="note indent">
+          This asks github.com for the latest version number, once per start. Nothing about you
+          or your windows is sent. With this off, Hidely makes no network connection by itself.
+        </p>
+        <label class="check">
+          <input id="setting-browsers" type="checkbox" />
+          <span>Connect Chrome and Edge</span>
+        </label>
+        <p class="note indent">
+          Lets the Hidely browser extension protect a browser window while a private tab is
+          showing. This only tells those browsers where Hidely is; you install the extension
+          yourself, and only that extension can use the connection.
+        </p>
+        <div class="shortcut-row">
+          <div>
+            <div id="settings-version"></div>
+            <div id="settings-message" class="muted" role="status"></div>
+          </div>
+          <button id="check-updates" type="button">Check now</button>
+        </div>
+        <div class="dialog-actions">
           <button type="submit" value="close" class="primary">Done</button>
         </div>
       </form>

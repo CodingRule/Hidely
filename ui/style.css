@@ -746,6 +746,15 @@ button:disabled {
   color: var(--text);
 }
 
+.link.update {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.note.indent {
+  margin: 2px 0 14px 24px;
+}
+
 /* ------------------------------------------------------------- profiles */
 
 .sidebar-top,

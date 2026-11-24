@@ -48,6 +48,12 @@ Zoom, Teams, Discord and OBS each use one or more of the capture methods above, 
 one depends on the app's version and settings. They stay Untested until someone checks the
 app's own preview.
 
+## Browser extension
+
+The [browser extension](EXTENSION.md) was run end to end in Microsoft Edge 158.0.4370.33 on
+Windows 11 25H2 (26200.9974) on 2026-11-24; its page lists the eight situations checked.
+Chrome and other Chromium browsers are **Untested**.
+
 ## Target windows
 
 What happened when Hidely was asked to protect a window, observed with `hidely-cli` on

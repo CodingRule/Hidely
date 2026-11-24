@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hidely</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icons/32.png" alt="" width="20" height="20" />
+      <h1>Hidely</h1>
+      <span id="link" class="link" role="status">Checking…</span>
+    </header>
+
+    <p id="problem" class="problem" role="alert" hidden></p>
+
+    <section>
+      <label class="choice">
+        <input id="tab" type="checkbox" />
+        <span>
+          <strong>Keep this tab private</strong>
+          <small>Until you close it or the browser.</small>
+        </span>
+      </label>
+      <label class="choice">
+        <input id="site" type="checkbox" />
+        <span>
+          <strong id="site-label">Always keep this site private</strong>
+          <small>Every tab on this site, every time.</small>
+        </span>
+      </label>
+    </section>
+
+    <p id="status" class="status" role="status"></p>
+
+    <section id="sites-section" hidden>
+      <h2>Always private</h2>
+      <ul id="sites"></ul>
+    </section>
+
+    <p class="note">
+      While a private tab is showing, the whole browser window is left out of screen capture,
+      not just the tab. When you switch to a private tab it can be captured for a moment
+      before Hidely catches it, so switch tabs before you start talking about it.
+    </p>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

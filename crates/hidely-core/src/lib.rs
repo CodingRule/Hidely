@@ -15,13 +15,14 @@ mod error;
 pub mod inject;
 pub mod overlay;
 pub mod pointer;
+pub mod system;
 mod windows;
 
 pub use cloaker::{data_dir, Cloaker};
 pub use error::CloakError;
 pub use windows::{
     display_affinity, icon_rgba, is_window, list_windows, os_version, owner_pid, process_identity,
-    WindowInfo,
+    window_rect, window_scale, WindowInfo,
 };
 
 /// Window is captured normally.

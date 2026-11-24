@@ -538,6 +538,70 @@ $("open-shortcuts").addEventListener("click", () => {
   $("shortcut-dialog").showModal();
 });
 
+// -------------------------------------------------------------------- settings
+
+const LATEST_RELEASE = "https://api.github.com/repos/CodingRule/Hidely/releases/latest";
+
+/** Ask GitHub for the newest release. Returns its version if newer than this one, else null. */
+async function findUpdate() {
+  const response = await fetch(LATEST_RELEASE, { headers: { Accept: "application/vnd.github+json" } });
+  if (!response.ok) throw new Error(`GitHub answered ${response.status}`);
+  const latest = (await response.json()).tag_name ?? "";
+  return (await invoke("is_newer", { latest })) ? latest.replace(/^v/, "") : null;
+}
+
+function offerUpdate(version) {
+  const link = $("update-available");
+  link.textContent = `Version ${version} is available`;
+  link.hidden = false;
+}
+
+$("update-available").addEventListener("click", () => run(() => invoke("open_releases")));
+
+$("open-settings").addEventListener("click", () => {
+  $("setting-startup").checked = model.starts_with_windows;
+  $("setting-updates").checked = model.check_updates_at_startup;
+  $("setting-browsers").checked = model.browsers_connected;
+  $("settings-version").textContent = `Hidely ${model.version}`;
+  $("settings-message").textContent = "";
+  $("settings-dialog").showModal();
+});
+
+/** Apply a checkbox; if the change is refused, say why and put the box back. */
+async function applySetting(box, command) {
+  const message = $("settings-message");
+  message.textContent = "";
+  try {
+    await invoke(command, { enabled: box.checked });
+  } catch (error) {
+    message.textContent = String(error);
+  }
+  await refresh();
+  $("setting-startup").checked = model.starts_with_windows;
+  $("setting-updates").checked = model.check_updates_at_startup;
+  $("setting-browsers").checked = model.browsers_connected;
+}
+
+$("setting-startup").addEventListener("change", (event) => applySetting(event.target, "set_start_with_windows"));
+$("setting-updates").addEventListener("change", (event) => applySetting(event.target, "set_check_updates"));
+$("setting-browsers").addEventListener("change", (event) => applySetting(event.target, "set_browsers_connected"));
+
+$("check-updates").addEventListener("click", async () => {
+  const message = $("settings-message");
+  message.textContent = "Checking…";
+  try {
+    const version = await findUpdate();
+    if (version) {
+      offerUpdate(version);
+      message.textContent = `Version ${version} is available. Use the link at the bottom left of the window to get it.`;
+    } else {
+      message.textContent = "You have the latest version.";
+    }
+  } catch (error) {
+    message.textContent = `Could not check: ${error.message}. Are you online?`;
+  }
+});
+
 // ----------------------------------------------------------------- diagnostics
 
 $("open-diagnostics").addEventListener("click", async () => {
@@ -587,4 +651,13 @@ document.addEventListener("contextmenu", (event) => event.preventDefault());
 listen("state-changed", refresh);
 window.addEventListener("focus", refresh);
 setInterval(refresh, 2000);
-refresh();
+refresh().then(async () => {
+  // Only if the user asked for it: one quiet check when the app starts.
+  if (!model.check_updates_at_startup) return;
+  try {
+    const version = await findUpdate();
+    if (version) offerUpdate(version);
+  } catch {
+    // Offline or GitHub unavailable: say nothing, the user can check from Settings.
+  }
+});

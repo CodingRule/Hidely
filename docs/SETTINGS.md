@@ -62,6 +62,7 @@ Two profiles, the first one selected, and the default shortcuts:
 | `selected_profile` | The `id` of the profile the next session will use, or `null`. Selecting a profile does not start a session. If the id matches no profile, Hidely clears it when it loads the file. |
 | `shortcuts.toggle` | Starts a privacy session, or ends the one that is running. |
 | `shortcuts.restore` | Makes every protected window capturable again. |
+| `check_updates_at_startup` | `true` to ask GitHub for the latest version number each time Hidely starts. Optional; left out or `false` means Hidely makes no network connection by itself. |
 
 If the whole `shortcuts` object is left out, or a shortcut is an empty string, Hidely uses the
 default (`Super+Shift+H` for `toggle`, `Super+Shift+U` for `restore`). If `shortcuts` is present,

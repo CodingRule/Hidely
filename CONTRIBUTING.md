@@ -49,6 +49,7 @@ npm run dev
 | `crates/hidely-cli/` | Command-line front end over the core crate |
 | `src-tauri/` | The desktop app: tray, hotkeys, HUD and the commands the UI calls |
 | `ui/` | The app's front end in plain HTML, CSS and JavaScript, with no build step |
+| `extension/` | The Chrome and Edge extension, also plain JavaScript. `src-tauri/src/native_host.rs` is its other end. See [docs/EXTENSION.md](docs/EXTENSION.md) |
 | `docs/` | The test page (served by GitHub Pages), the compatibility record, and driver notes |
 | `driver/` | The DWMShield kernel driver, maintained here together with its author, Alexandru Hossu. See [docs/DRIVER.md](docs/DRIVER.md) before changing it. |
 

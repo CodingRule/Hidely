@@ -58,7 +58,10 @@ see the [compatibility record](docs/COMPATIBILITY.md) for what has actually been
 - **Plain pointer over protected windows.** Captures still draw the mouse pointer over a window they leave out. While it is over a protected window, Hidely keeps it a plain arrow, so a text bar or a hand can't give the window away.
 - **Recovery.** If Hidely crashes it restores windows on the way down. If it is killed outright, the next launch restores them and tells you.
 - **Local diagnostics.** An optional report you read before saving. It has no window titles, paths or screenshots and is never uploaded.
+- **Private browser tabs.** A [Chrome and Edge extension](docs/EXTENSION.md) protects a browser window while a tab or site you marked private is showing, and releases it when you switch away.
 - **32-bit and 64-bit apps.** Both are supported.
+- **Starts with Windows if you want.** Opt in under Settings and Hidely waits in the tray after you sign in. It also remembers where you left its window.
+- **No network activity unless you ask.** Hidely connects to nothing by itself. Checking for a new version is a button, or an opt-in check at startup that asks github.com for the latest version number and sends nothing about you.
 - **CLI included.** `hidely-cli watch slack.exe` runs a session from a terminal.
 
 <p align="center">
@@ -132,6 +135,8 @@ installer and publishes it.
 | End the session | Click **End session**, or press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> again |
 | Make everything capturable again, now | Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> |
 | Change the shortcuts | Click **Change shortcuts** at the bottom left |
+| Start Hidely with Windows, or check for updates | Click **Settings** at the bottom left |
+| Hide a browser window while a private tab is showing | Install the [browser extension](docs/EXTENSION.md) |
 | Back up or edit profiles by hand | Copy `%LOCALAPPDATA%\Hidely\settings.json`. The format is described in [docs/SETTINGS.md](docs/SETTINGS.md) |
 | Keep it out of the way | Close the window. Hidely stays in the tray. |
 | Quit | Right-click the tray icon and choose **Quit** |
@@ -153,7 +158,8 @@ hidely-cli watch <exe>... [--seconds N]
 
 The app itself also takes two arguments, which are passed to the copy that is already running:
 `Hidely.exe --toggle-session` starts or ends a session with the selected profile and pinned
-windows, and `Hidely.exe --end-session` makes everything capturable again.
+windows, `Hidely.exe --end-session` makes everything capturable again, and `Hidely.exe --quit`
+closes it. `Hidely.exe --minimized` starts it in the tray without showing the window.
 Build it with `cargo build --release -p hidely-cli`.
 
 ## How it works
@@ -181,7 +187,8 @@ ui/                  Front end (plain HTML, CSS, JS)
 src-tauri/           Tauri 2 app: tray, shortcuts, HUD, commands
 crates/hidely-core/  The engine: windows, sessions, profiles, capture exclusion (Win32)
 crates/hidely-cli/   Command-line front end over the same engine
-docs/                Test page, compatibility record, settings file, driver notes
+extension/           Chrome and Edge extension for private tabs
+docs/                Test page, compatibility record, settings file, extension and driver notes
 driver/              DWMShield kernel driver (optional, not built; see below)
 ```
 
@@ -208,8 +215,10 @@ Released:
 
 Next:
 
-- [ ] **v0.3** Zoom, Teams, Discord, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
-- [ ] **v0.4** Browser extension for per-tab hiding
+- [ ] **v0.4** Zoom, Teams, Discord, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
+- [x] **v0.3** Settings: start with Windows, update check, remembered window position
+- [x] **v0.3** [Browser extension](docs/EXTENSION.md) for private tabs and sites (tested in Edge)
+- [ ] Browser extension checked in Chrome, and published in the Chrome and Edge stores
 - [ ] **v1.0** Signed installer and auto-update
 
 Not planned for now:

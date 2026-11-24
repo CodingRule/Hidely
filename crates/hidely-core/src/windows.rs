@@ -3,18 +3,19 @@ use std::mem::{size_of, zeroed};
 use std::path::Path;
 use std::ptr::null_mut;
 
-use windows_sys::Win32::Foundation::{CloseHandle, BOOL, FILETIME, HWND, LPARAM};
+use windows_sys::Win32::Foundation::{CloseHandle, BOOL, FILETIME, HWND, LPARAM, RECT};
 use windows_sys::Win32::Graphics::Dwm::DwmGetWindowAttribute;
 use windows_sys::Win32::Graphics::Gdi::{
     CreateCompatibleDC, CreateDIBSection, DeleteDC, DeleteObject, SelectObject, BITMAPINFO,
     BITMAPINFOHEADER,
 };
+use windows_sys::Win32::UI::HiDpi::GetDpiForWindow;
 use windows_sys::Win32::System::Threading::{
     GetProcessTimes, OpenProcess, QueryFullProcessImageNameW,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     DrawIconEx, EnumWindows, GetClassLongPtrW, GetWindow, GetWindowDisplayAffinity,
-    GetWindowLongPtrW, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow,
+    GetWindowLongPtrW, GetWindowRect, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsWindow,
     IsWindowVisible, SendMessageTimeoutW,
 };
 
@@ -47,6 +48,21 @@ pub fn owner_pid(hwnd: isize) -> Option<u32> {
     let mut pid = 0u32;
     let tid = unsafe { GetWindowThreadProcessId(hwnd as HWND, &mut pid) };
     (tid != 0 && pid != 0).then_some(pid)
+}
+
+/// A window's position and size on screen, as (left, top, width, height) in pixels.
+pub fn window_rect(hwnd: isize) -> Option<(i32, i32, i32, i32)> {
+    let mut rect = RECT { left: 0, top: 0, right: 0, bottom: 0 };
+    let ok = unsafe { GetWindowRect(hwnd as HWND, &mut rect) };
+    (ok != 0).then_some((rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top))
+}
+
+/// How much the window's monitor is scaled: 1.0 at 100%, 1.5 at 150%.
+pub fn window_scale(hwnd: isize) -> f64 {
+    match unsafe { GetDpiForWindow(hwnd as HWND) } {
+        0 => 1.0,
+        dpi => dpi as f64 / 96.0,
+    }
 }
 
 /// Current display affinity of a window (works for other processes' windows too).

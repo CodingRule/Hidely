@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Hidely for browsers",
+  "version": "0.3.0",
+  "description": "Keep a browser window out of screen sharing while a private tab is showing. Needs the Hidely app for Windows.",
+  "homepage_url": "https://github.com/CodingRule/Hidely",
+  "minimum_chrome_version": "116",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkc9Ia8kTeZAgnY55+h0EJYwLb3pl5nWkfO+E013UtqEVu2DOOmRHQ9mO6JYZ0x/Rzs4jprRG25tkJESF+CKzG8E9jAbQsFLMP3pIrzzswwuaIM0/+9CRDEDNUh9yd6caJYxTeorZ9XHHf0nduuESOZ+L6OEKhk7+2Jtf7G7rqcT/4yHBCBe6rycVM4p+ksoZux3PliXY4GYcAdjHDPWjbmOP0Zf2S9zarVHVBM1ELz93sZVrEbNPirZN5OHZD3fQjT1fB+py1r7Wgax6cBXFnu2xPRrg6xqlAFk82LAnL9q9R7tOhoOud4Y8nvnqlW38nZKRluZQn7h2N7AELuuaPwIDAQAB",
+  "icons": {
+    "32": "icons/32.png",
+    "128": "icons/128.png"
+  },
+  "permissions": ["tabs", "storage", "nativeMessaging"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Hidely",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "32": "icons/32.png"
+    }
+  }
+}

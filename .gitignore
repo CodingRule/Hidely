@@ -4,8 +4,10 @@ src-tauri/gen/
 .vs/
 .claude/
 
-# local planning notes
+# local planning notes and launch material
 app.md
+features.md
+docs/images/demo.mp4
 
 # driver build output
 *.sys

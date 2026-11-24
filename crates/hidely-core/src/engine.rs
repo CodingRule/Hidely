@@ -39,6 +39,8 @@ pub enum Source {
     Manual,
     /// A profile rule matched it during a session.
     Rule,
+    /// The browser extension asked, because a private tab is showing in that window.
+    Extension,
 }
 
 impl Source {
@@ -46,6 +48,7 @@ impl Source {
         match self {
             Self::Manual => "manual",
             Self::Rule => "rule",
+            Self::Extension => "extension",
         }
     }
 }
@@ -130,6 +133,9 @@ pub struct Engine {
     session: Option<SessionInfo>,
     /// Windows a rule has already been tried on, so a failure is not retried forever.
     attempted: HashSet<isize>,
+    /// Windows protected only because the browser extension asked. The extension may
+    /// release these, and nothing else.
+    by_extension: HashSet<isize>,
     log: VecDeque<LogEntry>,
     recovery: Option<EndReport>,
     last_end: Option<EndReport>,
@@ -147,6 +153,7 @@ impl Engine {
             pinned: HashSet::new(),
             session: None,
             attempted: HashSet::new(),
+            by_extension: HashSet::new(),
             log: VecDeque::new(),
             recovery: None,
             last_end: None,
@@ -197,6 +204,13 @@ impl Engine {
         let state = match (ticket.hide, result) {
             (true, Ok(outcome @ Outcome::Changed { .. })) => {
                 self.cloaker.record(hwnd, outcome);
+                if ticket.source == Source::Extension {
+                    self.by_extension.insert(hwnd);
+                } else {
+                    // The user or a profile now wants this window protected too, so the
+                    // extension may no longer release it.
+                    self.by_extension.remove(&hwnd);
+                }
                 Some(WindowState {
                     status: Status::Applied,
                     detail: "Windows confirmed this window is excluded from capture.".into(),
@@ -206,6 +220,7 @@ impl Engine {
             (true, Ok(Outcome::AlreadyProtected)) => Some(already_protected()),
             (false, Ok(_)) => {
                 self.cloaker.forget(hwnd);
+                self.by_extension.remove(&hwnd);
                 None
             }
             (_, Err(CloakError::WindowGone)) | (false, Err(CloakError::OwnerChanged)) => {
@@ -292,6 +307,7 @@ impl Engine {
     pub fn end_session(&mut self) -> EndReport {
         self.session = None;
         self.attempted.clear();
+        self.by_extension.clear();
         let report = self.cloaker.restore_all();
         self.log_restore(&report, "session-end");
 
@@ -362,6 +378,11 @@ impl Engine {
                 }
             })
             .collect()
+    }
+
+    /// Whether this window is protected only because the browser extension asked.
+    pub fn is_by_extension(&self, hwnd: isize) -> bool {
+        self.by_extension.contains(&hwnd) && self.cloaker.is_hidden(hwnd)
     }
 
     /// Whether Hidely itself has this window excluded from capture right now.
@@ -531,6 +552,28 @@ mod tests {
         engine.end_session();
         more.push(window(14, "slack.exe"));
         assert!(engine.rule_targets(&more).is_empty(), "rules stop the moment the session ends");
+    }
+
+    #[test]
+    fn the_extension_can_only_release_what_it_protected() {
+        let mut engine = engine();
+        let changed = Outcome::Changed { pid: 4_000_000_000, started: 1 };
+        let from_extension =
+            Ticket { hwnd: 5, hide: true, expected_pid: None, source: Source::Extension, app: "chrome.exe".into() };
+        engine.finish(&from_extension, Ok(changed));
+        assert!(engine.by_extension.contains(&5));
+
+        // The user protects the same window by hand: it is theirs now.
+        engine.finish(&ticket(5, true), Ok(changed));
+        assert!(!engine.by_extension.contains(&5), "a manual choice outranks the extension");
+
+        // A window the user protected was never the extension's.
+        engine.finish(&ticket(6, true), Ok(changed));
+        assert!(!engine.by_extension.contains(&6));
+
+        engine.finish(&from_extension, Ok(changed));
+        engine.end_session();
+        assert!(engine.by_extension.is_empty(), "ending the session clears it");
     }
 
     #[test]

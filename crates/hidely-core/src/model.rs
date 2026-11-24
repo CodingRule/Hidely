@@ -81,6 +81,10 @@ pub struct Settings {
     pub selected_profile: Option<String>,
     #[serde(default)]
     pub shortcuts: Shortcuts,
+    /// Ask GitHub whether a newer version exists when Hidely starts. Off unless the user
+    /// turns it on, so Hidely makes no network connection by itself.
+    #[serde(default)]
+    pub check_updates_at_startup: bool,
 }
 
 impl Default for Settings {
@@ -90,6 +94,7 @@ impl Default for Settings {
             profiles: Vec::new(),
             selected_profile: None,
             shortcuts: Shortcuts::default(),
+            check_updates_at_startup: false,
         }
     }
 }
@@ -102,7 +107,8 @@ impl Settings {
         let Ok(text) = fs::read_to_string(path) else {
             return (Self::default(), None);
         };
-        match serde_json::from_str::<Self>(&text) {
+        // Notepad and PowerShell put a byte-order mark at the start of the file.
+        match serde_json::from_str::<Self>(text.trim_start_matches('\u{feff}')) {
             Ok(mut settings) => {
                 settings.migrate();
                 (settings, None)
@@ -380,6 +386,12 @@ mod tests {
         assert_eq!(settings.selected_profile, None);
         assert_eq!(settings.shortcuts.toggle, DEFAULT_TOGGLE);
         assert_eq!(settings.shortcuts.restore, "Alt+F9");
+
+        // A file saved by Notepad or PowerShell, with a byte-order mark in front.
+        fs::write(&path, "\u{feff}{\"version\":1,\"check_updates_at_startup\":true}").unwrap();
+        let (settings, warning) = Settings::load(&path);
+        assert_eq!(warning, None, "a byte-order mark must not make the file unreadable");
+        assert!(settings.check_updates_at_startup);
 
         fs::write(&path, "{ this is not json").unwrap();
         let (settings, warning) = Settings::load(&path);

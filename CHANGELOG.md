@@ -4,6 +4,26 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-24
+
+### Added
+
+- **Browser extension for Chrome and Edge.** Mark a tab or a site private, and Hidely
+  protects that browser window while it is showing and releases it when you switch away.
+  See [docs/EXTENSION.md](docs/EXTENSION.md). Tested in Edge.
+- **Connect Chrome and Edge** in Settings, which lets the extension reach Hidely.
+- Settings dialog.
+- Start Hidely when you sign in to Windows (opt-in). It opens in the tray.
+- Check for a new version: a **Check now** button, and an opt-in check at startup. Off by
+  default, so Hidely still makes no network connection by itself.
+- The window remembers its size and position between launches.
+- `Hidely.exe --minimized` and `Hidely.exe --quit`.
+
+### Fixed
+
+- A settings file saved by Notepad or PowerShell (with a byte-order mark) was treated as
+  unreadable and replaced with defaults. It now loads normally.
+
 ## [0.2.1] - 2026-11-23
 
 ### Added
@@ -90,6 +110,7 @@ First release.
 - Screen-share test page.
 - Windows installer and portable executable.
 
+[0.3.0]: https://github.com/CodingRule/Hidely/releases/tag/v0.3.0
 [0.2.1]: https://github.com/CodingRule/Hidely/releases/tag/v0.2.1
 [0.2.0]: https://github.com/CodingRule/Hidely/releases/tag/v0.2.0
 [0.1.2]: https://github.com/CodingRule/Hidely/releases/tag/v0.1.2
