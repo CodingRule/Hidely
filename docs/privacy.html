@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy policy | Hidely</title>
+    <meta name="description" content="What the Hidely app and the Hidely browser extension access, store and send. In short: nothing leaves your computer." />
+    <link rel="canonical" href="https://codingrule.github.io/Hidely/privacy.html" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f6f7;
+        --text: #1b1c1f;
+        --muted: #5f636c;
+        --border: #dcdde2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #17181b;
+          --text: #ececef;
+          --muted: #a3a7b0;
+          --border: #36383e;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.6 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 40px 16px 64px;
+      }
+      h1 { margin: 0 0 4px; font-size: 28px; line-height: 1.2; }
+      h2 { margin: 32px 0 8px; font-size: 19px; }
+      p, li { max-width: 70ch; }
+      .muted { color: var(--muted); }
+      table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+      th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+      a { color: inherit; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Privacy policy</h1>
+      <p class="muted">For the Hidely app for Windows and the Hidely browser extension. Last updated 24 November 2026.</p>
+
+      <p>
+        <strong>In short: nothing leaves your computer.</strong> Hidely has no servers, no accounts,
+        no analytics and no advertising. It collects nothing about you, and nothing is sold or
+        shared.
+      </p>
+
+      <h2>The browser extension</h2>
+      <p>The extension needs to know which tab is in front so it can tell Hidely to protect that browser window. To do that it uses:</p>
+      <table>
+        <thead>
+          <tr><th>What</th><th>Why</th><th>Where it goes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>The active tab's address</td>
+            <td>To see whether it is on a site you marked private</td>
+            <td>Checked inside the extension. Not stored or sent anywhere.</td>
+          </tr>
+          <tr>
+            <td>The active tab's title and the browser window's position on screen</td>
+            <td>So Hidely can tell which window on your screen to protect</td>
+            <td>Sent only to the Hidely app on the same computer, through the browser's native messaging. Hidely uses them once and does not store them.</td>
+          </tr>
+          <tr>
+            <td>The sites you mark private</td>
+            <td>To remember your choice</td>
+            <td>Kept in the browser's own extension storage on your computer.</td>
+          </tr>
+          <tr>
+            <td>The tabs you mark private</td>
+            <td>To remember your choice until the browser closes</td>
+            <td>Kept in the browser's session storage, cleared when the browser closes.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The extension makes no network requests. It does not read page contents, form fields,
+        passwords or cookies, and it does not track your browsing history.
+      </p>
+
+      <h2>The Hidely app</h2>
+      <ul>
+        <li>
+          It stores your profiles and shortcuts in <code>%LOCALAPPDATA%\Hidely\settings.json</code>. Profiles record
+          program file names such as <code>slack.exe</code>, never window titles or contents.
+        </li>
+        <li>
+          While windows are protected it keeps a small recovery file with window handles, process
+          numbers and process start times, so it can restore windows after a crash. It is deleted
+          when nothing is protected.
+        </li>
+        <li>
+          It makes no network connection by itself. If you choose to check for a new version, it
+          asks github.com for the latest version number. That request carries nothing about you or
+          your windows, and GitHub's own
+          <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a>
+          applies to it.
+        </li>
+        <li>The optional diagnostic report is shown to you first, saved to your Documents folder only when you press Save, and never uploaded.</li>
+      </ul>
+
+      <h2>Questions</h2>
+      <p>
+        Hidely is open source, so you can check all of the above in the
+        <a href="https://github.com/CodingRule/Hidely">source code</a>. Questions or concerns:
+        <a href="https://github.com/CodingRule/Hidely/issues">open an issue</a>, or report privately
+        as described in the <a href="https://github.com/CodingRule/Hidely/blob/main/SECURITY.md">security policy</a>.
+      </p>
+    </main>
+  </body>
+</html>

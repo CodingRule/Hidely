@@ -8,6 +8,7 @@ src-tauri/gen/
 app.md
 features.md
 blog-post.md
+store/
 docs/images/demo.mp4
 
 # driver build output
