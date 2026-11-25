@@ -60,3 +60,93 @@ impl fmt::Display for CloakError {
 }
 
 impl std::error::Error for CloakError {}
+
+#[cfg(test)]
+mod tests {
+    use super::CloakError;
+
+    fn errors() -> [CloakError; 8] {
+        [
+            CloakError::WindowGone,
+            CloakError::Unsupported("32-bit apps are not supported"),
+            CloakError::AccessDenied,
+            CloakError::Os {
+                call: "OpenProcess",
+                code: 5,
+            },
+            CloakError::Timeout,
+            CloakError::Rejected,
+            CloakError::NotVerified,
+            CloakError::OwnerChanged,
+        ]
+    }
+
+    #[test]
+    fn every_error_has_a_user_facing_message() {
+        for error in errors() {
+            let message = error.to_string();
+            assert!(!message.trim().is_empty(), "{error:?} has an empty message");
+            assert!(
+                !message.ends_with('.'),
+                "{error:?} message ends with a full stop: {message}"
+            );
+        }
+    }
+
+    #[test]
+    fn access_denied_message_suggests_running_as_administrator() {
+        assert!(CloakError::AccessDenied
+            .to_string()
+            .contains("administrator"));
+    }
+
+    #[test]
+    fn each_error_has_its_documented_code() {
+        let cases = [
+            (CloakError::WindowGone, "WINDOW_GONE"),
+            (CloakError::Unsupported("reason"), "UNSUPPORTED"),
+            (CloakError::AccessDenied, "ACCESS_DENIED"),
+            (CloakError::Timeout, "TIMEOUT"),
+            (CloakError::Rejected, "REJECTED"),
+            (CloakError::NotVerified, "NOT_VERIFIED"),
+            (CloakError::OwnerChanged, "OWNER_CHANGED"),
+        ];
+
+        for (error, expected) in cases {
+            assert_eq!(error.code(), expected);
+        }
+        assert_eq!(
+            CloakError::Os {
+                call: "OpenProcess",
+                code: 5,
+            }
+            .code(),
+            "OS_ERROR:OpenProcess:5"
+        );
+    }
+
+    #[test]
+    fn error_codes_are_searchable() {
+        for error in errors() {
+            let code = error.code();
+            if let Some(rest) = code.strip_prefix("OS_ERROR:") {
+                let (call, error_code) = rest
+                    .split_once(':')
+                    .expect("OS_ERROR code has call and code");
+                assert!(!call.is_empty(), "OS_ERROR code has an empty function name");
+                assert!(error_code
+                    .chars()
+                    .all(|character| character.is_ascii_digit()));
+            } else {
+                assert!(
+                    code.chars().all(|character| {
+                        character.is_ascii_uppercase()
+                            || character.is_ascii_digit()
+                            || character == '_'
+                    }),
+                    "code contains a space or lowercase letter: {code}"
+                );
+            }
+        }
+    }
+}
