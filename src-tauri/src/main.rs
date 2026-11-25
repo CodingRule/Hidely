@@ -6,15 +6,17 @@ mod native_host;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use art::TrayLook;
 use base64::Engine as _;
-use hidely_core::engine::{EndReport, Engine, Source, Status, Summary, WATCH_INTERVAL_MS};
+use hidely_core::capture::{capture_screen, pick_monitor};
+use hidely_core::engine::{Engine, Lost, SessionReport, Source, Status, Summary, WATCH_INTERVAL_MS};
+use hidely_core::meeting::{MeetingOffer, MeetingWatch, MEETING_SCAN_MS};
 use hidely_core::model::{AppRule, Profile, Settings, Shortcuts, DEFAULT_RESTORE, DEFAULT_TOGGLE};
 use hidely_core::{
-    data_dir, elevation, icon_rgba, list_windows, os_version, overlay, pointer, system, Cloaker,
-    WindowInfo,
+    data_dir, display_affinity, elevation, icon_rgba, list_windows, os_version, overlay, pointer,
+    process_start_time, system, window_rect, window_title, Cloaker, WindowInfo,
 };
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -26,6 +28,16 @@ use tauri::{
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 const HUD_MILLIS: u64 = 1600;
+/// Problems stay up longer, so they can be read before they go.
+const HUD_PROBLEM_MILLIS: u64 = 4000;
+/// One reminder per session, after this long, that it is still on.
+const STILL_ON_SECS: u64 = 2 * 60 * 60;
+const TEST_PAGE_URL: &str = "https://codingrule.github.io/Hidely/#try";
+/// "What viewers see" frames: default and allowed widths. Small frames are cheap to send and
+/// keep text unreadable, which suits a privacy tool.
+const VIEWER_WIDTH: u32 = 640;
+const VIEWER_MIN_WIDTH: u32 = 320;
+const VIEWER_MAX_WIDTH: u32 = 960;
 /// The name of Hidely's entry in the list of programs that start with Windows.
 const STARTUP_NAME: &str = "Hidely";
 const RELEASES_URL: &str = "https://github.com/CodingRule/Hidely/releases/latest";
@@ -128,6 +140,7 @@ struct AppState {
     bindings: Mutex<Bindings>,
     tray: Mutex<Option<TrayItems>>,
     hud_generation: AtomicU64,
+    meeting: Mutex<MeetingWatch>,
 }
 
 impl AppState {
@@ -170,6 +183,9 @@ struct WindowDto {
     pinned: bool,
     /// This is Hidely's own window.
     own: bool,
+    /// When Windows last confirmed this window is excluded from capture (seconds since
+    /// 1970), or null if it never has.
+    verified_unix: Option<u64>,
 }
 
 #[derive(Serialize)]
@@ -186,7 +202,7 @@ struct ShortcutDto {
 struct Snapshot {
     windows: Vec<WindowDto>,
     summary: Summary,
-    last_end: Option<EndReport>,
+    last_end: Option<SessionReport>,
     profiles: Vec<Profile>,
     selected_profile: Option<String>,
     shortcuts: Vec<ShortcutDto>,
@@ -199,6 +215,19 @@ struct Snapshot {
     check_updates_at_startup: bool,
     /// Chrome and Edge have been told where to find Hidely for the browser extension.
     browsers_connected: bool,
+    /// The first-run tour was finished or skipped.
+    first_run_done: bool,
+    /// Offer a privacy session when a meeting app opens.
+    meeting_detection: bool,
+    /// A meeting app that opened and is waiting for the user to start a session or say no.
+    meeting_offer: Option<MeetingOffer>,
+}
+
+#[derive(Clone, Serialize)]
+struct ProtectionLost {
+    hwnd: String,
+    app: String,
+    reapplied: bool,
 }
 
 #[derive(Serialize)]
@@ -279,6 +308,7 @@ fn snapshot(app: AppHandle, state: State<AppState>) -> Snapshot {
                 detail: view.detail,
                 owned: view.owned,
                 pinned: view.pinned,
+                verified_unix: view.verified_unix,
             })
             .collect(),
         summary,
@@ -293,6 +323,12 @@ fn snapshot(app: AppHandle, state: State<AppState>) -> Snapshot {
         starts_with_windows: system::starts_with_windows(STARTUP_NAME),
         check_updates_at_startup: settings.check_updates_at_startup,
         browsers_connected: browsers_connected(),
+        first_run_done: settings.first_run_done,
+        meeting_detection: settings.meeting_detection,
+        meeting_offer: settings
+            .meeting_detection
+            .then(|| lock(&state.meeting).offer().cloned())
+            .flatten(),
     }
 }
 
@@ -353,17 +389,17 @@ fn session_preview(app: AppHandle, state: State<AppState>) -> SessionPreview {
 
 #[tauri::command(async)]
 fn start_session(app: AppHandle) -> Result<(), String> {
-    let message = start_session_action(&app)?;
+    let note = start_session_action(&app)?;
     refresh(&app);
-    show_hud(&app, &message);
+    show_note(&app, &note);
     Ok(())
 }
 
 #[tauri::command(async)]
 fn end_session(app: AppHandle) {
-    let message = end_session_action(&app);
+    let note = end_session_action(&app);
     refresh(&app);
-    show_hud(&app, &message);
+    show_note(&app, &note);
 }
 
 #[tauri::command(async)]
@@ -526,6 +562,109 @@ fn set_check_updates(state: State<AppState>, enabled: bool) -> Result<(), String
     })
 }
 
+/// Record that the first-run tour was finished or skipped (true), or ask for it again (false).
+#[tauri::command(async)]
+fn set_first_run_done(state: State<AppState>, done: bool) -> Result<(), String> {
+    edit_settings(&state, |settings| {
+        settings.first_run_done = done;
+        Ok(())
+    })
+}
+
+/// Turn the meeting-app offer on or off. Turning it off also withdraws a waiting offer, and
+/// turning it back on starts fresh, so apps already open then are not offered.
+#[tauri::command(async)]
+fn set_meeting_detection(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let state = app.state::<AppState>();
+    edit_settings(&state, |settings| {
+        settings.meeting_detection = enabled;
+        Ok(())
+    })?;
+    *lock(&state.meeting) = MeetingWatch::default();
+    refresh(&app);
+    Ok(())
+}
+
+/// The user said no to the meeting offer. The same run of that app will not ask again.
+#[tauri::command(async)]
+fn dismiss_meeting_offer(app: AppHandle) {
+    lock(&app.state::<AppState>().meeting).dismiss();
+    refresh(&app);
+}
+
+/// Open the page that shows whether a protected window is missing from a real screen share.
+#[tauri::command(async)]
+fn open_test_page() -> Result<(), String> {
+    if system::open_in_browser(TEST_PAGE_URL) {
+        Ok(())
+    } else {
+        Err(format!("Could not open your browser. The page is {TEST_PAGE_URL}"))
+    }
+}
+
+/// A small picture of one monitor as Windows screen capture returns it, for "What viewers
+/// see". The reply is binary: four little-endian u32 (width, height, monitor index, monitor
+/// count) followed by width × height RGBA pixels.
+///
+/// The picture is only ever held in memory and handed to Hidely's own window. It is never
+/// saved, logged or put in diagnostics, and it is refused while that window is hidden.
+#[tauri::command(async)]
+fn viewer_frame(
+    app: AppHandle,
+    monitor: Option<usize>,
+    max_width: Option<u32>,
+) -> Result<tauri::ipc::Response, String> {
+    let main = app.get_webview_window("main").ok_or("Hidely's window is not open.")?;
+    let shown = main.is_visible().unwrap_or(false) && !main.is_minimized().unwrap_or(true);
+    if !shown {
+        return Err("Open Hidely's window to see this.".into());
+    }
+    let monitors: Vec<(i32, i32, u32, u32)> = main
+        .available_monitors()
+        .map_err(|_| "Can't read the screen right now.")?
+        .iter()
+        .map(|m| (m.position().x, m.position().y, m.size().width, m.size().height))
+        .collect();
+    if monitors.is_empty() {
+        return Err("Can't read the screen right now.".into());
+    }
+    let primary = main
+        .primary_monitor()
+        .ok()
+        .flatten()
+        .and_then(|p| {
+            monitors.iter().position(|&(x, y, w, h)| {
+                (x, y, w, h) == (p.position().x, p.position().y, p.size().width, p.size().height)
+            })
+        })
+        .unwrap_or(0);
+    let index = match monitor {
+        Some(index) if index < monitors.len() => index,
+        _ => {
+            let protected: Vec<_> = app
+                .state::<AppState>()
+                .engine()
+                .protected_windows()
+                .into_iter()
+                .filter_map(window_rect)
+                .collect();
+            let own = main.hwnd().ok().and_then(|hwnd| window_rect(hwnd.0 as isize));
+            pick_monitor(&monitors, &protected, own, primary)
+        }
+    };
+    let (x, y, w, h) = monitors[index];
+    let width = max_width.unwrap_or(VIEWER_WIDTH).clamp(VIEWER_MIN_WIDTH, VIEWER_MAX_WIDTH);
+    let frame = capture_screen((x, y, w as i32, h as i32), width)
+        .ok_or("Can't read the screen right now.")?;
+
+    let mut body = Vec::with_capacity(16 + frame.rgba.len());
+    for value in [frame.width, frame.height, index as u32, monitors.len() as u32] {
+        body.extend_from_slice(&value.to_le_bytes());
+    }
+    body.extend_from_slice(&frame.rgba);
+    Ok(tauri::ipc::Response::new(body))
+}
+
 /// Whether `latest` (a release tag such as `v0.3.0`) is newer than this build.
 #[tauri::command(async)]
 fn is_newer(latest: String) -> bool {
@@ -608,8 +747,36 @@ fn apply_one(app: &AppHandle, hwnd: isize, hide: bool, source: Source) -> Status
     status
 }
 
+/// Protect one window for a particular session. Nothing happens, and `None` comes back, if
+/// that session ended (or another started) in the meantime, so a late rule or re-apply can
+/// never start a new session or hide a window after "Session ended".
+fn apply_in_session(app: &AppHandle, hwnd: isize, source: Source, session: Option<u64>) -> Option<Status> {
+    let state = app.state::<AppState>();
+    let ticket = state.engine().begin_in(hwnd, source, session?)?;
+    let _ = app.emit("state-changed", ());
+    let result = ticket.run();
+    let status = state.engine().finish(&ticket, result);
+    Some(status)
+}
+
+/// A HUD message, and whether it reports a problem (problems stay up longer).
+struct Note {
+    text: String,
+    problem: bool,
+}
+
+impl Note {
+    fn info(text: impl Into<String>) -> Self {
+        Self { text: text.into(), problem: false }
+    }
+
+    fn problem(text: impl Into<String>) -> Self {
+        Self { text: text.into(), problem: true }
+    }
+}
+
 /// Start a session with the selected profile and the pinned windows.
-fn start_session_action(app: &AppHandle) -> Result<String, String> {
+fn start_session_action(app: &AppHandle) -> Result<Note, String> {
     let state = app.state::<AppState>();
     let profile = lock(&state.settings).selected().cloned();
     let open = all_windows(app);
@@ -624,56 +791,70 @@ fn start_session_action(app: &AppHandle) -> Result<String, String> {
         return Err("Nothing to protect yet. Pick a profile with apps in it, or pin a window.".into());
     }
 
-    let rule_targets = {
+    let (rule_targets, session) = {
         let mut engine = state.engine();
         let (name, rules) =
             profile.map_or((None, Vec::new()), |profile| (Some(profile.name), profile.rules));
         engine.start_session(name, rules);
-        engine.rule_targets(&open)
+        (engine.rule_targets(&open), engine.session_id())
     };
+    // A waiting meeting offer has been answered.
+    lock(&state.meeting).dismiss();
+    // If the session is ended while this runs, the remaining windows are left alone.
     let mut done = Vec::new();
     for hwnd in pinned {
-        done.push((hwnd, apply_one(app, hwnd, true, Source::Manual)));
+        if let Some(status) = apply_in_session(app, hwnd, Source::Manual, session) {
+            done.push((hwnd, status));
+        }
     }
     for hwnd in rule_targets {
         if !done.iter().any(|(seen, _)| *seen == hwnd) {
-            done.push((hwnd, apply_one(app, hwnd, true, Source::Rule)));
+            if let Some(status) = apply_in_session(app, hwnd, Source::Rule, session) {
+                done.push((hwnd, status));
+            }
         }
     }
     let applied = done.iter().filter(|(_, status)| *status == Status::Applied).count();
     let failed = done.len() - applied;
     Ok(match failed {
-        0 => format!("Session started: {applied} window{} protected", plural(applied)),
-        _ => format!("Session started: {applied} protected, {failed} not protected"),
+        0 => Note::info(format!("Session on: {applied} window{} protected", plural(applied))),
+        _ => Note::problem(format!("Session on: {applied} protected, {failed} not protected")),
     })
 }
 
 /// End the session and make everything Hidely changed capturable again.
-fn end_session_action(app: &AppHandle) -> String {
+fn end_session_action(app: &AppHandle) -> Note {
     let report = app.state::<AppState>().engine().end_session();
     match report.failed {
-        0 => format!("Capturable again: {} window{}", report.restored, plural(report.restored)),
-        failed => format!("{} restored, {failed} still excluded from capture", report.restored),
+        0 => Note::info(format!(
+            "Session ended: {} window{} capturable again",
+            report.restored,
+            plural(report.restored)
+        )),
+        failed => Note::problem(format!(
+            "Session ended: {} capturable again, {failed} still hidden from capture",
+            report.restored
+        )),
     }
 }
 
 /// The toggle shortcut and tray item.
 fn toggle_session(app: &AppHandle) {
     let active = app.state::<AppState>().engine().summary().session_active;
-    let message = if active {
+    let note = if active {
         end_session_action(app)
     } else {
-        start_session_action(app).unwrap_or_else(|problem| problem)
+        start_session_action(app).unwrap_or_else(Note::problem)
     };
     refresh(app);
-    show_hud(app, &message);
+    show_note(app, &note);
 }
 
 /// The restore shortcut and tray item.
 fn restore_all(app: &AppHandle) {
-    let message = end_session_action(app);
+    let note = end_session_action(app);
     refresh(app);
-    show_hud(app, &message);
+    show_note(app, &note);
 }
 
 /// Tell the tray and the window that something changed.
@@ -682,31 +863,40 @@ fn refresh(app: &AppHandle) {
     let _ = app.emit("state-changed", ());
 }
 
+/// The tray's look and text: the worst state wins. Windows cuts tooltips at 127 characters,
+/// and every one of these stays well under that.
+fn tray_status(summary: &Summary) -> (TrayLook, String) {
+    let problems = summary.errors + summary.unsupported;
+    if !summary.session_active {
+        return match summary.errors {
+            0 => (TrayLook::Idle, "Hidely: off. Nothing is hidden.".to_string()),
+            n => (
+                TrayLook::Attention,
+                format!("Hidely: off. {n} window{} still hidden from capture.", plural(n)),
+            ),
+        };
+    }
+    let hidden = summary.applied;
+    let total = hidden + summary.applying + problems;
+    if problems > 0 {
+        (TrayLook::Attention, format!("Hidely: on. {hidden} of {total} hidden. {problems} visible to viewers."))
+    } else if summary.applying > 0 {
+        (TrayLook::Active, format!("Hidely: on. {hidden} of {total} hidden, {} applying.", summary.applying))
+    } else if total == 0 {
+        (TrayLook::Active, "Hidely: on. Nothing is hidden yet.".to_string())
+    } else {
+        (TrayLook::Active, format!("Hidely: on. {hidden} of {total} hidden from capture."))
+    }
+}
+
 fn update_tray(app: &AppHandle) {
     let state = app.state::<AppState>();
     let summary = state.engine().summary();
-    let problems = summary.errors + summary.unsupported;
-    let (look, text) = if !summary.session_active {
-        let text = match summary.errors {
-            0 => "No privacy session. Nothing is protected.".to_string(),
-            n => format!("No privacy session. {n} window{} still excluded from capture.", plural(n)),
-        };
-        (if summary.errors > 0 { TrayLook::Attention } else { TrayLook::Idle }, text)
-    } else {
-        let mut text = format!(
-            "Privacy session on. {} window{} protected.",
-            summary.applied,
-            plural(summary.applied)
-        );
-        if problems > 0 {
-            text.push_str(&format!(" {problems} could not be protected."));
-        }
-        (if problems > 0 { TrayLook::Attention } else { TrayLook::Active }, text)
-    };
+    let (look, text) = tray_status(&summary);
 
     if let Some(tray) = app.tray_by_id("main") {
         let _ = tray.set_icon(Some(art::tray_icon(look)));
-        let _ = tray.set_tooltip(Some(format!("Hidely: {text}")));
+        let _ = tray.set_tooltip(Some(&text));
     }
     let tray = lock(&state.tray);
     if let Some(items) = tray.as_ref() {
@@ -842,6 +1032,7 @@ fn build_diagnostics(state: &AppState) -> String {
             "applying": summary.applying,
             "unsupported": summary.unsupported,
             "errors": summary.errors,
+            "protection_lost": summary.protection_lost,
         },
         "recovered_at_startup": recovery,
         "shortcuts_registered": {
@@ -856,13 +1047,19 @@ fn build_diagnostics(state: &AppState) -> String {
 
 // --------------------------------------------------------------------- HUD
 
-/// Briefly show a message near the bottom of the screen without taking focus.
-/// The HUD itself is excluded from capture, so viewers of a share never see it.
 fn show_hud(app: &AppHandle, message: &str) {
+    show_note(app, &Note::info(message));
+}
+
+/// Briefly show a message near the bottom of the screen without taking focus. Problems
+/// get the warning look and stay up longer. The HUD itself is excluded from capture, so
+/// viewers of a share never see it.
+fn show_note(app: &AppHandle, note: &Note) {
+    let millis = if note.problem { HUD_PROBLEM_MILLIS } else { HUD_MILLIS };
     let Some(hud) = app.get_webview_window("hud") else { return };
     let Ok(handle) = hud.hwnd() else { return };
     let hwnd = handle.0 as isize;
-    let _ = hud.emit("hud", message);
+    let _ = hud.emit("hud", serde_json::json!({ "message": note.text, "problem": note.problem }));
 
     if let (Ok(Some(monitor)), Ok(size)) = (hud.primary_monitor(), hud.outer_size()) {
         let screen = monitor.size();
@@ -877,7 +1074,7 @@ fn show_hud(app: &AppHandle, message: &str) {
     let generation = state.hud_generation.fetch_add(1, Ordering::SeqCst) + 1;
     let app = app.clone();
     std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_millis(HUD_MILLIS));
+        std::thread::sleep(Duration::from_millis(millis));
         // Only hide if no newer message has been shown in the meantime.
         if app.state::<AppState>().hud_generation.load(Ordering::SeqCst) == generation {
             overlay::hide(hwnd);
@@ -895,25 +1092,132 @@ fn open_main(app: &AppHandle) {
 
 // ------------------------------------------------------------------- setup
 
-/// While a session with profile rules is running, protect matching windows as they open.
+/// The window's title cut to 40 characters for the HUD, or the program name without one.
+fn short_title(hwnd: isize, app: &str) -> String {
+    let title = window_title(hwnd).filter(|title| !title.trim().is_empty());
+    let name = title.unwrap_or_else(|| app.trim_end_matches(".exe").to_string());
+    if name.chars().count() > 40 {
+        format!("{}…", name.chars().take(39).collect::<String>())
+    } else {
+        name
+    }
+}
+
+/// "Press Win+Shift+H" when the toggle shortcut works, otherwise a pointer to the window.
+fn toggle_hint(app: &AppHandle) -> Option<String> {
+    let state = app.state::<AppState>();
+    let bindings = lock(&state.bindings);
+    bindings.toggle.registered.then(|| bindings.toggle.keys.replace("Super", "Win"))
+}
+
+/// While a session runs: every tick, read back each protected window's setting and
+/// re-protect any that lost it; when the session has profile rules, also protect matching
+/// windows as they open. Every couple of seconds, look for newly opened meeting apps.
 fn spawn_watcher(app: AppHandle) {
-    std::thread::spawn(move || loop {
-        std::thread::sleep(Duration::from_millis(WATCH_INTERVAL_MS));
-        let state = app.state::<AppState>();
-        if !state.engine().summary().watching {
-            continue;
+    std::thread::spawn(move || {
+        let mut next_meeting_scan = Instant::now();
+        let mut reminded_for: Option<u64> = None;
+        loop {
+            std::thread::sleep(Duration::from_millis(WATCH_INTERVAL_MS));
+            let state = app.state::<AppState>();
+            let summary = state.engine().summary();
+            if Instant::now() >= next_meeting_scan {
+                next_meeting_scan = Instant::now() + Duration::from_millis(MEETING_SCAN_MS);
+                scan_meeting_apps(&app, summary.session_active);
+            }
+            if !summary.session_active {
+                continue;
+            }
+
+            let mut changed = false;
+            // A cheap read per window that sends no messages, so it is fine under the lock.
+            let lost = state.engine().reverify(display_affinity, unix_now());
+            for window in lost {
+                changed = true;
+                handle_lost(&app, window);
+            }
+
+            if summary.watching {
+                let windows = list_windows(Some(std::process::id()));
+                // Asking again under the lock means a session that just ended yields nothing.
+                let (targets, session) = {
+                    let mut engine = state.engine();
+                    (engine.rule_targets(&windows), engine.session_id())
+                };
+                for hwnd in targets {
+                    changed = true;
+                    let app_name = windows.iter().find(|w| w.hwnd == hwnd).map(|w| w.exe.clone());
+                    let title = short_title(hwnd, app_name.as_deref().unwrap_or_default());
+                    match apply_in_session(&app, hwnd, Source::Rule, session) {
+                        Some(Status::Applied) => show_hud(&app, &format!("Protected: {title}")),
+                        // The session ended, or the window closed first: nothing to say.
+                        None | Some(Status::Unprotected) => {}
+                        Some(_) => show_note(&app, &Note::problem(format!("Not protected: {title}. Viewers can see it."))),
+                    }
+                }
+            }
+
+            if let Some(started) = summary.started_unix {
+                if reminded_for != Some(started) && unix_now().saturating_sub(started) >= STILL_ON_SECS {
+                    reminded_for = Some(started);
+                    let ends = toggle_hint(&app).map_or_else(
+                        || "End it from Hidely's window.".to_string(),
+                        |keys| format!("{keys} ends it."),
+                    );
+                    show_hud(&app, &format!("Privacy session still on, 2 h. {ends}"));
+                }
+            }
+
+            if changed {
+                refresh(&app);
+            }
         }
-        let windows = list_windows(Some(std::process::id()));
-        // Asking again under the lock means a session that just ended yields nothing.
-        let targets = state.engine().rule_targets(&windows);
-        if targets.is_empty() {
-            continue;
-        }
-        for hwnd in targets {
-            apply_one(&app, hwnd, true, Source::Rule);
-        }
-        refresh(&app);
     });
+}
+
+/// A window Windows now reports as capturable. Re-protect it if the cap allows, then say so
+/// loudly either way: it was visible to viewers, even if only for a moment.
+fn handle_lost(app: &AppHandle, window: Lost) {
+    let title = short_title(window.hwnd, &window.app);
+    let reapplied = window.reapply
+        && apply_in_session(app, window.hwnd, Source::Reverify, window.session) == Some(Status::Applied);
+    let _ = app.emit(
+        "protection-lost",
+        ProtectionLost { hwnd: window.hwnd.to_string(), app: window.app, reapplied },
+    );
+    let message = if reapplied {
+        format!("{title} lost protection. Protected again.")
+    } else {
+        format!("{title} is visible to viewers again")
+    };
+    show_note(app, &Note::problem(message));
+}
+
+/// Offer a privacy session when a meeting app opens. Only offers: nothing starts by itself.
+fn scan_meeting_apps(app: &AppHandle, session_active: bool) {
+    let state = app.state::<AppState>();
+    if !lock(&state.settings).meeting_detection {
+        return;
+    }
+    let windows = list_windows(Some(std::process::id()));
+    let (had_offer, offer, has_offer) = {
+        let mut watch = lock(&state.meeting);
+        let had = watch.offer().is_some();
+        let offer = watch.scan(&windows, process_start_time, session_active);
+        (had, offer, watch.offer().is_some())
+    };
+    if let Some(offer) = offer {
+        let _ = app.emit("meeting-app-detected", &offer);
+        refresh(app);
+        let message = match toggle_hint(app) {
+            Some(keys) => format!("{} is open. Press {keys} to start a privacy session.", offer.process),
+            None => format!("{} is open. Open Hidely to start a privacy session.", offer.process),
+        };
+        show_hud(app, &message);
+    } else if had_offer != has_offer {
+        // The offer went away (the app closed), so the banner should too.
+        refresh(app);
+    }
 }
 
 /// Screen captures show the pointer even over a window they leave out. While it is over a
@@ -995,7 +1299,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &toggle,
             &restore,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "reset_shortcuts", "Restore default shortcuts", true, None::<&str>)?,
+            &MenuItem::with_id(app, "viewer", "What viewers see", true, None::<&str>)?,
             &MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?,
         ],
     )?;
@@ -1007,13 +1311,10 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             "open" => open_main(app),
             "toggle" => toggle_session(app),
             "restore" => restore_all(app),
-            "reset_shortcuts" => {
-                let message = match reset_shortcuts_action(app) {
-                    Ok(()) => "Shortcuts are back to their defaults".to_string(),
-                    Err(problem) => problem,
-                };
+            "viewer" => {
+                open_main(app);
+                let _ = app.emit("open-viewer", ());
                 refresh(app);
-                show_hud(app, &message);
             }
             "quit" => app.exit(0),
             _ => {}
@@ -1152,6 +1453,7 @@ fn main() {
             bindings: Mutex::new(Bindings::default()),
             tray: Mutex::new(None),
             hud_generation: AtomicU64::new(0),
+            meeting: Mutex::new(MeetingWatch::default()),
         })
         .invoke_handler(tauri::generate_handler![
             snapshot,
@@ -1175,7 +1477,12 @@ fn main() {
             open_releases,
             diagnostics,
             save_diagnostics,
-            window_icon
+            window_icon,
+            set_first_run_done,
+            set_meeting_detection,
+            dismiss_meeting_offer,
+            open_test_page,
+            viewer_frame
         ])
         .on_window_event(|window, event| {
             // Closing the main window sends it to the tray instead of quitting.
@@ -1197,4 +1504,30 @@ fn main() {
             pointer::restore();
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn summary(active: bool, applied: usize, applying: usize, unsupported: usize, errors: usize) -> Summary {
+        Summary { session_active: active, applied, applying, unsupported, errors, ..Summary::default() }
+    }
+
+    #[test]
+    fn the_tray_says_what_is_true_and_the_worst_state_wins() {
+        let text = |s: Summary| tray_status(&s).1;
+        assert_eq!(text(summary(false, 0, 0, 0, 0)), "Hidely: off. Nothing is hidden.");
+        assert_eq!(text(summary(false, 0, 0, 0, 1)), "Hidely: off. 1 window still hidden from capture.");
+        assert_eq!(text(summary(true, 3, 0, 0, 0)), "Hidely: on. 3 of 3 hidden from capture.");
+        assert_eq!(text(summary(true, 2, 1, 0, 0)), "Hidely: on. 2 of 3 hidden, 1 applying.");
+        assert_eq!(text(summary(true, 2, 0, 1, 0)), "Hidely: on. 2 of 3 hidden. 1 visible to viewers.");
+        assert_eq!(text(summary(true, 2, 1, 0, 1)), "Hidely: on. 2 of 4 hidden. 1 visible to viewers.");
+        assert_eq!(text(summary(true, 0, 0, 0, 0)), "Hidely: on. Nothing is hidden yet.");
+        assert!(matches!(tray_status(&summary(true, 2, 0, 1, 0)).0, TrayLook::Attention));
+        assert!(matches!(tray_status(&summary(false, 0, 0, 0, 0)).0, TrayLook::Idle));
+
+        let worst = text(summary(true, 99_999, 99_999, 99_999, 99_999));
+        assert!(worst.chars().count() < 127, "Windows would cut this tooltip off");
+    }
 }

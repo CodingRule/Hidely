@@ -4,6 +4,44 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **What viewers see.** A picture of your screen as Windows screen capture returns it on
+  this PC, refreshed once a second while it is open. Protected windows are missing from it.
+  The picture stays in memory: it is never saved or sent. Meeting apps can capture
+  differently, so the test page is still the check for a real share.
+- **Protected windows are re-checked.** During a session Hidely keeps reading back each
+  window's setting. If an app resets it, Hidely says so, protects the window again (up to
+  three times) and counts it in the session summary. Each row shows when it was last checked.
+- **Session summary.** Ending a session shows how long it ran, how many windows were hidden,
+  how many were caught as they opened, and anything that went wrong.
+- **Meeting app offer.** When Zoom, Teams, OBS or Webex opens and no session is on, Hidely
+  offers to start one. It only offers; it never starts by itself. It can be turned off in
+  Settings.
+- **Keyboard-first window list.** Arrow keys select, Enter protects, P pins, `/` searches.
+- **Command palette.** Ctrl+K lists everything Hidely can do, with its shortcut.
+- **First-run tour.** Three short steps the first time Hidely opens: protect a window, see it
+  missing on the test page, learn the shortcut. It can be skipped, and replayed from Settings.
+- "What viewers see" in the tray menu, and a reminder after two hours that a session is
+  still on.
+
+### Changed
+
+- A refreshed look: clearer rows and status chips, settings as cards with switches, and small
+  animations that only run when something changes.
+- Status wording says what viewers get: "Hidden from capture" and "Visible to viewers".
+- Protect and Unprotect respond at once. If Windows refuses, the row says so and stays put.
+- The tray tooltip counts what is hidden, applying or visible to viewers.
+- "Restore default shortcuts" moved from the tray menu to the Shortcuts dialog.
+
+### Fixed
+
+- A session with only pinned or hand-picked windows was never re-checked after it started.
+- The "applying" spinner no longer animates forever, and the window list stops refreshing
+  while Hidely is hidden in the tray.
+
 ## [0.3.1] - 2026-11-24
 
 ### Changed

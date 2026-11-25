@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hidely</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="features.css" />
   </head>
   <body>
     <div class="shell">
@@ -70,18 +71,23 @@
                 <button id="new-profile" type="button" class="link">New</button>
               </div>
               <div id="profiles" role="radiogroup" aria-labelledby="profiles-title"></div>
-              <p class="hint">Choosing a profile doesn't start anything.</p>
+              <p id="profiles-hint" class="hint">Choosing a profile doesn't start anything.</p>
             </section>
           </div>
 
           <div class="sidebar-end">
-            <dl id="hotkeys" class="hotkeys" aria-label="Keyboard shortcuts"></dl>
+            <section class="shortcuts" aria-labelledby="hotkeys-title">
+              <div class="section-head">
+                <h2 id="hotkeys-title">Shortcuts</h2>
+                <button id="open-shortcuts" type="button" class="link" aria-label="Edit shortcuts">Edit</button>
+              </div>
+              <dl id="hotkeys" class="hotkeys" aria-labelledby="hotkeys-title"></dl>
+            </section>
             <div class="links">
-              <button id="update-available" type="button" class="link update" hidden></button>
+              <button id="update-available" type="button" class="link update loud" hidden></button>
               <button id="open-settings" type="button" class="link">Settings</button>
-              <button id="open-shortcuts" type="button" class="link">Change shortcuts</button>
               <button id="open-diagnostics" type="button" class="link">Diagnostics</button>
-              <button id="restart-elevated" type="button" class="link" hidden>Restart as administrator</button>
+              <button id="restart-elevated" type="button" class="link loud" hidden>Restart as administrator</button>
             </div>
           </div>
         </aside>
@@ -100,15 +106,22 @@
             <button id="dismiss-notices" type="button" class="link">Dismiss</button>
           </div>
 
+          <!-- The first-run tour and the meeting-app offer render here (features.js). -->
+          <div id="banner-slot"></div>
+
           <div class="toolbar">
             <div class="heading">
               <h2 id="list-title">All windows</h2>
               <span id="total"></span>
             </div>
-            <label class="search">
-              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.500" /><path d="m10.500 10.500 3.500 3.500" /></svg>
-              <input id="search" type="search" placeholder="Search windows" aria-label="Search windows" autocomplete="off" spellcheck="false" />
-            </label>
+            <div class="tools">
+              <button id="open-viewer" type="button" class="secondary">What viewers see</button>
+              <label class="search">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.500" /><path d="m10.500 10.500 3.500 3.500" /></svg>
+                <input id="search" type="search" placeholder="Search windows" aria-label="Search windows" aria-keyshortcuts="/" autocomplete="off" spellcheck="false" />
+                <kbd class="slash" aria-hidden="true">/</kbd>
+              </label>
+            </div>
           </div>
 
           <div class="table">
@@ -132,6 +145,13 @@
             <p id="empty" class="empty" hidden></p>
           </div>
 
+          <p class="keyhints" aria-hidden="true">
+            <span><kbd>↑</kbd><kbd>↓</kbd> select</span>
+            <span><kbd>Enter</kbd> protect</span>
+            <span><kbd>P</kbd> pin</span>
+            <span><kbd>/</kbd> search</span>
+            <span><kbd>Ctrl</kbd><kbd>K</kbd> commands</span>
+          </p>
           <p id="status" class="error" role="alert"></p>
         </main>
       </div>
@@ -143,12 +163,12 @@
         <h2 id="start-title">Start a privacy session?</h2>
         <div id="start-body"></div>
         <p class="note">
-          A window you open during the session can show up in a capture for a moment before it
-          is protected. Hidely looks for new windows every <span id="start-interval"></span> ms.
+          New windows are protected within <span id="start-interval"></span> ms of opening.
+          Something may show for that moment.
         </p>
         <p class="note">
-          "Protection applied" means Windows accepted the setting. It does not prove what a
-          particular meeting app shows. Check yours with the test page first.
+          Protection applied means Windows confirmed it. Meeting apps can differ, so
+          <button id="start-test-page" type="button" class="link">test yours</button> once.
         </p>
         <div class="dialog-actions">
           <button type="submit" value="cancel">Cancel</button>
@@ -199,32 +219,52 @@
     <dialog id="settings-dialog" aria-labelledby="settings-title">
       <form method="dialog">
         <h2 id="settings-title">Settings</h2>
-        <label class="check">
-          <input id="setting-startup" type="checkbox" />
-          <span>Start Hidely when I sign in to Windows</span>
-        </label>
-        <p class="note indent">It opens in the tray without showing this window.</p>
-        <label class="check">
-          <input id="setting-updates" type="checkbox" />
-          <span>Check for a new version when Hidely starts</span>
-        </label>
-        <p class="note indent">
-          This asks github.com for the latest version number, once per start. Nothing about you
-          or your windows is sent. With this off, Hidely makes no network connection by itself.
-        </p>
-        <label class="check">
-          <input id="setting-browsers" type="checkbox" />
-          <span>Connect Chrome and Edge</span>
-        </label>
-        <p class="note indent">
-          Lets the Hidely browser extension protect a browser window while a private tab is
-          showing. This only tells those browsers where Hidely is; you install the extension
-          yourself, and only that extension can use the connection.
-        </p>
-        <div class="shortcut-row">
+        <div class="setting">
           <div>
-            <div id="settings-version"></div>
-            <div id="settings-message" class="muted" role="status"></div>
+            <label for="setting-startup">Start Hidely when I sign in to Windows</label>
+            <p class="note">Opens in the tray without showing this window.</p>
+          </div>
+          <input id="setting-startup" type="checkbox" role="switch" class="switch" />
+        </div>
+        <div class="setting">
+          <div>
+            <label for="setting-meeting">Offer a privacy session when a meeting app opens</label>
+            <p class="note">Zoom, Teams, OBS and Webex. Hidely only offers; it never starts by itself.</p>
+          </div>
+          <input id="setting-meeting" type="checkbox" role="switch" class="switch" />
+        </div>
+        <div class="setting">
+          <div>
+            <label for="setting-browsers">Connect Chrome and Edge</label>
+            <p class="note">
+              Lets the Hidely browser extension protect a browser window while a private tab is
+              showing. This only tells those browsers where Hidely is; you install the extension
+              yourself, and only that extension can use the connection.
+            </p>
+          </div>
+          <input id="setting-browsers" type="checkbox" role="switch" class="switch" />
+        </div>
+        <div class="setting">
+          <div>
+            <label for="setting-updates">Check for a new version when Hidely starts</label>
+            <p class="note">
+              Asks github.com for the latest version number, once per start. Nothing about you
+              or your windows is sent. With this off, Hidely makes no network connection by itself.
+            </p>
+          </div>
+          <input id="setting-updates" type="checkbox" role="switch" class="switch" />
+        </div>
+        <div class="setting">
+          <div>
+            <div id="replay-tour-label" class="setting-label">Show the first-run tour again</div>
+            <p class="note">Three short steps, about a minute.</p>
+          </div>
+          <button id="replay-tour" type="button" aria-describedby="replay-tour-label">Show tour</button>
+        </div>
+        <div class="setting">
+          <div>
+            <div id="settings-version" class="setting-label"></div>
+            <div id="settings-message" class="note" role="status"></div>
           </div>
           <button id="check-updates" type="button">Check now</button>
         </div>
@@ -253,5 +293,6 @@
     </dialog>
 
     <script src="main.js"></script>
+    <script src="features.js"></script>
   </body>
 </html>

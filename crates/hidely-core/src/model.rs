@@ -12,7 +12,7 @@ use crate::WindowInfo;
 
 /// The current layout of the settings file. Bump when the layout changes and add a step
 /// to [`Settings::migrate`].
-pub const SETTINGS_VERSION: u32 = 1;
+pub const SETTINGS_VERSION: u32 = 2;
 
 pub const DEFAULT_TOGGLE: &str = "Super+Shift+H";
 pub const DEFAULT_RESTORE: &str = "Super+Shift+U";
@@ -85,6 +85,18 @@ pub struct Settings {
     /// turns it on, so Hidely makes no network connection by itself.
     #[serde(default)]
     pub check_updates_at_startup: bool,
+    /// The first-run tour was finished or skipped. Files from before version 2 load as
+    /// true, so people who already use Hidely never see the tour.
+    #[serde(default)]
+    pub first_run_done: bool,
+    /// Offer a privacy session when a meeting app opens. Hidely only offers; it never
+    /// starts a session by itself.
+    #[serde(default = "yes")]
+    pub meeting_detection: bool,
+}
+
+fn yes() -> bool {
+    true
 }
 
 impl Default for Settings {
@@ -95,6 +107,8 @@ impl Default for Settings {
             selected_profile: None,
             shortcuts: Shortcuts::default(),
             check_updates_at_startup: false,
+            first_run_done: false,
+            meeting_detection: true,
         }
     }
 }
@@ -154,6 +168,10 @@ impl Settings {
         }
         if self.selected_profile.as_ref().is_some_and(|id| self.profile(id).is_none()) {
             self.selected_profile = None;
+        }
+        // Version 1 had no tour. Whoever wrote that file has used Hidely already.
+        if self.version < 2 {
+            self.first_run_done = true;
         }
         self.version = SETTINGS_VERSION;
     }
@@ -400,6 +418,36 @@ mod tests {
         assert!(path.with_extension("json.bad").exists(), "the unreadable file must be kept");
 
         assert_eq!(Settings::load(&dir.join("missing.json")), (Settings::default(), None));
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_tour_shows_only_on_a_new_install() {
+        let dir = std::env::temp_dir().join(format!("hidely-first-run-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("settings.json");
+
+        let (fresh, _) = Settings::load(&dir.join("missing.json"));
+        assert!(!fresh.first_run_done, "a new install sees the tour");
+        assert!(fresh.meeting_detection, "the meeting offer is on by default");
+
+        for old in [r#"{"version":1}"#, "{}"] {
+            fs::write(&path, old).unwrap();
+            let (settings, warning) = Settings::load(&path);
+            assert_eq!(warning, None);
+            assert!(settings.first_run_done, "{old}: existing users skip the tour");
+            assert!(settings.meeting_detection, "{old}: a missing field keeps the default");
+        }
+
+        // A version 2 file keeps what it says, both ways.
+        fs::write(&path, r#"{"version":2,"first_run_done":false,"meeting_detection":false}"#).unwrap();
+        let (settings, _) = Settings::load(&path);
+        assert!(!settings.first_run_done);
+        assert!(!settings.meeting_detection);
+
+        let done = Settings { first_run_done: true, ..Settings::default() };
+        done.save(&path).unwrap();
+        assert!(Settings::load(&path).0.first_run_done);
         let _ = fs::remove_dir_all(&dir);
     }
 }

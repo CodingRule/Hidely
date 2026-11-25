@@ -6,6 +6,7 @@
 
 #![cfg(windows)]
 
+pub mod capture;
 pub mod cloaker;
 pub mod engine;
 pub mod model;
@@ -13,6 +14,7 @@ pub mod driver;
 pub mod elevation;
 mod error;
 pub mod inject;
+pub mod meeting;
 pub mod overlay;
 pub mod pointer;
 pub mod system;
@@ -22,7 +24,7 @@ pub use cloaker::{data_dir, Cloaker};
 pub use error::CloakError;
 pub use windows::{
     display_affinity, icon_rgba, is_window, list_windows, os_version, owner_pid, process_identity,
-    window_rect, window_scale, WindowInfo,
+    process_start_time, window_rect, window_scale, window_title, WindowInfo,
 };
 
 /// Window is captured normally.

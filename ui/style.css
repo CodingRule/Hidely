@@ -1,22 +1,38 @@
 /* Hidely's window is borderless and transparent. The app draws its own rounded, slightly
-   see-through black shell: no blur and no effects, so it costs nothing to render. */
+   see-through black shell: no blur and no effects, so it costs nothing to render.
+   Depth comes from lightness steps and 1px edges, not from shadows. */
 :root {
   color-scheme: dark;
-  --shell: rgba(9, 9, 11, 0.8);
-  --pane: rgba(255, 255, 255, 0.045);
-  --text: #f4f4f6;
-  --text-2: rgba(244, 244, 246, 0.74);
-  --text-3: rgba(244, 244, 246, 0.6);
+  --shell: rgba(9, 9, 11, 0.9); /* contrast floor: --text-3 stays readable over a white window behind */
+  --s1: rgba(255, 255, 255, 0.035); /* pane */
+  --s2: rgba(255, 255, 255, 0.055); /* row hover */
+  --s3: rgba(255, 255, 255, 0.08); /* row selected, active filter */
+  --dialog: #1a1a1e;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+  --hi: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --text: #ececf0;
+  --text-2: #a1a1aa;
+  --text-3: #93939c;
   --ink: #0c0c0e;
-  --line: rgba(255, 255, 255, 0.1);
-  --fill: rgba(255, 255, 255, 0.07);
-  --fill-hover: rgba(255, 255, 255, 0.13);
-  --accent: #c9ccd6;
-  --ok: #6fdc9c;
-  --hidden: #ff9d9d;
-  --hidden-dot: #ff6464;
-  --warn: #f2c063;
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ok: #74d19b;
+  --ok-bg: rgba(116, 209, 155, 0.12);
+  --ok-line: rgba(116, 209, 155, 0.25);
+  --warn: #e8bd6a;
+  --warn-bg: rgba(232, 189, 106, 0.12);
+  --warn-line: rgba(232, 189, 106, 0.25);
+  --bad: #f0908f;
+  --bad-bg: rgba(240, 144, 143, 0.12);
+  --bad-line: rgba(240, 144, 143, 0.25);
+  --focus: #c9ccd6;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Older names, kept so nothing that still uses them breaks. */
+  --hidden: var(--bad);
+  --hidden-dot: var(--bad);
+  --accent: var(--focus);
+  --pane: var(--s1);
+  --fill: var(--s2);
+  --fill-hover: var(--s3);
 }
 
 * {
@@ -42,7 +58,7 @@ body {
 body {
   padding: 14px; /* room for the shell's shadow */
   color: var(--text);
-  font: 13px/1.4 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font: 13px/18px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   user-select: none;
   overflow: hidden;
 }
@@ -66,9 +82,28 @@ input {
   color: inherit;
 }
 
+/* One transition for every button: only cheap properties, and short. */
+button {
+  transition:
+    transform 120ms var(--ease),
+    background-color 120ms,
+    border-color 120ms,
+    color 120ms,
+    opacity 120ms;
+}
+
+/* A press is felt at once. The traffic lights keep their own look. */
+button:active:not(:disabled):not(.light) {
+  transform: scale(0.97);
+  transition-duration: 60ms;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -86,13 +121,38 @@ input {
   white-space: nowrap;
 }
 
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+h3 {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 5px;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  background: var(--s2);
+  color: var(--text-2);
+  font: 600 11px/14px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+
 /* ---------------------------------------------------------------- shell */
 
 .shell {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-2);
   border-radius: 20px;
   background: var(--shell);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
@@ -108,7 +168,8 @@ body.maximized .shell {
 .pane {
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--pane);
+  background: var(--s1);
+  box-shadow: var(--hi);
 }
 
 /* ------------------------------------------------------------- title bar */
@@ -154,7 +215,7 @@ body.maximized .shell {
   height: 9px;
   stroke-width: 1.3;
   opacity: 0;
-  transition: opacity 0.12s;
+  transition: opacity 120ms;
 }
 
 .lights:hover svg,
@@ -187,29 +248,30 @@ body.maximized .shell {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: 5px 13px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--pane);
+  background: var(--s1);
+  color: var(--text-2);
   font-size: 12px;
   white-space: nowrap;
-  transition: color 0.3s, border-color 0.3s;
+  transition:
+    color 200ms,
+    border-color 200ms;
 }
 
+/* Grey means nothing is chosen. Green is kept for a session that is on. */
 .state .dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--ok);
-  transition: background 0.3s;
-}
-
-.state .dot {
   background: var(--text-3);
+  transition: background-color 200ms;
 }
 
 .state.active {
-  border-color: rgba(111, 220, 156, 0.5);
+  border-color: var(--ok-line);
+  color: var(--text);
 }
 
 .state.active .dot {
@@ -217,7 +279,8 @@ body.maximized .shell {
 }
 
 .state.attention {
-  border-color: rgba(242, 192, 99, 0.6);
+  border-color: var(--warn-line);
+  background: var(--warn-bg);
   color: var(--warn);
 }
 
@@ -235,6 +298,7 @@ body.maximized .shell {
 
 /* -------------------------------------------------------------- sidebar */
 
+/* The sidebar is quieter than the list, so the list wins the eye. */
 .sidebar {
   flex: none;
   width: 204px;
@@ -242,9 +306,16 @@ body.maximized .shell {
   flex-direction: column;
   justify-content: space-between;
   gap: 20px;
-  padding: 10px 10px 16px;
+  padding: 10px 10px 14px;
   overflow-y: auto;
   scrollbar-width: none;
+}
+
+.sidebar-top,
+.sidebar-end {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .sidebar nav {
@@ -258,13 +329,12 @@ body.maximized .shell {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 8px 10px;
   border: 0;
   border-radius: 10px;
   background: none;
   color: var(--text-2);
   text-align: left;
-  transition: background 0.15s, color 0.15s;
 }
 
 .filter svg {
@@ -278,490 +348,32 @@ body.maximized .shell {
 
 .filter .count {
   min-width: 22px;
-  padding: 1px 6px;
+  padding: 0 6px;
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--fill);
+  color: var(--text-3);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
+/* Problems are the one count that may raise its voice. */
+.filter .count.warn {
+  border-color: var(--warn-line);
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-weight: 600;
+}
+
 .filter:hover {
-  background: var(--fill);
+  background: var(--s2);
   color: var(--text);
 }
 
 .filter[aria-pressed="true"] {
-  background: var(--fill-hover);
+  background: var(--s3);
   color: var(--text);
   font-weight: 600;
-}
-
-.hotkeys {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 0;
-  padding: 0 10px;
-  font-size: 12px;
-}
-
-.hotkeys dt {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 4px;
-}
-
-.hotkeys kbd {
-  padding: 2px 6px;
-  border: 1px solid var(--line);
-  border-bottom-width: 2px;
-  border-radius: 6px;
-  background: var(--fill);
-  font: 600 11px/1.3 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-}
-
-.hotkeys dd {
-  margin: 0;
-  color: var(--text-2);
-}
-
-.hotkeys .failed kbd {
-  opacity: 0.55;
-  text-decoration: line-through;
-}
-
-/* ----------------------------------------------------------------- main */
-
-.panel {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 14px 10px;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin: 14px 0 8px;
-}
-
-.pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 15px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--fill);
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.pill svg {
-  width: 16px;
-  height: 16px;
-}
-
-.pill:hover {
-  background: var(--fill-hover);
-}
-
-.search {
-  flex: 0 1 280px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.28);
-  color: var(--text-3);
-}
-
-.search svg {
-  width: 15px;
-  height: 15px;
-}
-
-.search input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  outline: 0;
-  background: none;
-  color: var(--text);
-}
-
-.search input::placeholder {
-  color: var(--text-3);
-}
-
-.search:focus-within {
-  border-color: var(--accent);
-}
-
-.heading {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-left: 4px;
-}
-
-h1,
-h2,
-h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-h3 {
-  margin-top: 14px;
-  font-size: 13px;
-}
-
-#total {
-  color: var(--text-2);
-  font-size: 12px;
-}
-
-/* ---------------------------------------------------------------- table */
-
-.table {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--fill-hover) transparent;
-}
-
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;
-}
-
-col.c-app {
-  width: 132px;
-}
-
-col.c-status {
-  width: 206px;
-}
-
-col.c-actions {
-  width: 142px;
-}
-
-th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding: 9px 14px;
-  background: #17171a;
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 500;
-  text-align: left;
-}
-
-th:first-child {
-  border-radius: 10px 0 0 10px;
-}
-
-th:last-child {
-  border-radius: 0 10px 10px 0;
-}
-
-td {
-  padding: 9px 14px;
-  vertical-align: middle;
-  border-bottom: 1px solid var(--line);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-tr:last-child td {
-  border-bottom-color: transparent;
-}
-
-tbody tr:hover td {
-  background: var(--fill);
-}
-
-tbody tr:hover td:first-child {
-  border-radius: 10px 0 0 10px;
-}
-
-tbody tr:hover td:last-child {
-  border-radius: 0 10px 10px 0;
-}
-
-.name {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.name .icon {
-  flex: none;
-  width: 24px;
-  height: 24px;
-  transition: opacity 0.4s var(--ease), filter 0.4s var(--ease);
-}
-
-.name .icon.placeholder {
-  border-radius: 6px;
-  background: var(--fill-hover);
-}
-
-.name .title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 13.5px;
-  transition: opacity 0.4s var(--ease);
-}
-
-td.app {
-  color: var(--text-2);
-}
-
-/* Status: a shape and words for every state, so colour is never the only signal. */
-.status-cell {
-  white-space: normal;
-}
-
-.badge {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--text-2);
-}
-
-.badge svg {
-  width: 15px;
-  height: 15px;
-}
-
-.detail {
-  margin-top: 3px;
-  color: var(--text-3);
-  font-size: 11.5px;
-  line-height: 1.35;
-}
-
-tr[data-status="applied"] .badge {
-  color: var(--ok);
-}
-
-tr[data-status="unsupported"] .badge {
-  color: var(--warn);
-}
-
-tr[data-status="error"] .badge {
-  color: var(--hidden);
-}
-
-tr[data-status="applying"] .badge svg {
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* A protected window turns into a ghost of itself. */
-tr[data-status="applied"] .icon {
-  opacity: 0.45;
-  filter: grayscale(1);
-}
-
-tr[data-status="applied"] .title {
-  opacity: 0.68;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-}
-
-.pin {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--text-3);
-  transition: background 0.15s, color 0.15s;
-}
-
-.pin svg {
-  width: 16px;
-  height: 16px;
-}
-
-.pin:hover {
-  background: var(--fill-hover);
-  color: var(--text);
-}
-
-.pin[aria-pressed="true"] {
-  color: var(--text);
-}
-
-.pin[aria-pressed="true"] svg {
-  fill: currentColor;
-}
-
-.toggle {
-  min-width: 84px;
-  padding: 6px 13px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--fill);
-  transition: background 0.15s, color 0.15s;
-}
-
-.toggle:hover {
-  background: var(--fill-hover);
-}
-
-.toggle:disabled {
-  opacity: 0.55;
-}
-
-.empty {
-  margin: 44px 0 0;
-  color: var(--text-2);
-  text-align: center;
-}
-
-.error {
-  min-height: 1.4em;
-  margin: 8px 4px 0;
-  color: var(--hidden);
-  font-size: 12px;
-  user-select: text;
-}
-
-/* -------------------------------------------------------------- session */
-
-.session {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.26);
-}
-
-.session p {
-  margin: 3px 0 0;
-  color: var(--text-2);
-  font-size: 12.5px;
-}
-
-.primary,
-.session button,
-dialog button {
-  flex: none;
-  padding: 8px 16px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--fill);
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.session button:hover,
-dialog button:hover {
-  background: var(--fill-hover);
-}
-
-.primary,
-.session button.primary,
-dialog button.primary {
-  border-color: transparent;
-  background: var(--text);
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.primary:hover,
-.session button.primary:hover,
-dialog button.primary:hover {
-  background: #ffffff;
-}
-
-button:disabled {
-  opacity: 0.5;
-}
-
-.notices {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 10px;
-  padding: 10px 14px;
-  border: 1px solid rgba(242, 192, 99, 0.45);
-  border-radius: 12px;
-  color: var(--text);
-  font-size: 12.5px;
-}
-
-.notices p {
-  margin: 0 0 4px;
-}
-
-.link {
-  padding: 2px 0;
-  border: 0;
-  background: none;
-  color: var(--text-2);
-  font-size: 12px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.link:hover {
-  color: var(--text);
-}
-
-.link.update {
-  color: var(--ok);
-  font-weight: 600;
-}
-
-.note.indent {
-  margin: 2px 0 14px 24px;
-}
-
-/* ------------------------------------------------------------- profiles */
-
-.sidebar-top,
-.sidebar-end {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
 }
 
 .section-head {
@@ -772,10 +384,82 @@ button:disabled {
 }
 
 .section-head h2 {
-  color: var(--text-2);
+  color: var(--text-3);
   font-size: 12px;
   font-weight: 500;
 }
+
+.hotkeys {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+/* One line per shortcut: what it does on the left, the keys on the right. */
+.hotkeys > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hotkeys dt {
+  order: 2;
+  flex: none;
+  display: flex;
+  gap: 3px;
+}
+
+.hotkeys dd {
+  order: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hotkeys .failed kbd {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.hotkeys .failed {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+.hotkeys .failed .why {
+  order: 3;
+  flex-basis: 100%;
+  color: var(--warn);
+  font-size: 11px;
+  white-space: normal;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 0 10px;
+}
+
+/* Quiet links wait until the pointer or the keyboard is in the sidebar. An available
+   update and the administrator restart are never dimmed. */
+.links .link:not(.loud) {
+  opacity: 0.7;
+}
+
+.sidebar:hover .links .link,
+.sidebar:focus-within .links .link {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------- profiles */
 
 .profile {
   display: flex;
@@ -799,7 +483,7 @@ button:disabled {
 }
 
 .profile-choose:hover {
-  background: var(--fill);
+  background: var(--s2);
   color: var(--text);
 }
 
@@ -828,11 +512,10 @@ button:disabled {
 }
 
 .profile-choose .count {
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--fill);
+  color: var(--text-3);
   font-size: 11px;
   font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 
 .hint,
@@ -840,41 +523,711 @@ button:disabled {
 .muted {
   color: var(--text-3);
   font-size: 12px;
+  line-height: 16px;
 }
 
 .hint {
   margin: 6px 10px 0;
 }
 
-.links {
+/* The hint keeps its space and only fades in, so the sidebar never jumps. With no
+   profiles yet it explains what a profile is, and then it is always shown. */
+.profiles .hint {
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+.profiles:hover .hint,
+.profiles:focus-within .hint,
+.profiles .hint.always {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------------- main */
+
+.panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 10px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 14px 0 8px;
+}
+
+.heading {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-left: 4px;
+}
+
+#total {
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.tools {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.search {
+  flex: 0 1 260px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 34px;
+  padding: 0 10px 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--text-3);
+  transition: border-color 120ms;
+}
+
+.search svg {
+  width: 15px;
+  height: 15px;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--text);
+}
+
+.search input::placeholder {
+  color: var(--text-3);
+}
+
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search:focus-within {
+  border-color: var(--focus);
+}
+
+/* The "/" hint goes away once the field is in use. */
+.search:focus-within .slash,
+#search:not(:placeholder-shown) + .slash {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- table */
+
+.table {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--s3) transparent;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  table-layout: fixed;
+}
+
+col.c-app {
+  width: 132px;
+}
+
+col.c-status {
+  width: 206px;
+}
+
+col.c-actions {
+  width: 142px;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 7px 14px;
+  background: #131316; /* solid: rows scroll underneath it */
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  text-align: left;
+}
+
+th:first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+th:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+/* Rows are separated by space, not by lines. */
+td {
+  padding: 8px 14px;
+  vertical-align: middle;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+td:first-child {
+  position: relative; /* anchors the settle and failure bars */
+  border-radius: 10px 0 0 10px;
+}
+
+td:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+tbody tr {
+  scroll-margin-top: 34px; /* clear of the sticky header when the keyboard scrolls */
+}
+
+tbody tr:focus-visible {
+  outline: none; /* drawn inside the cells instead, see below */
+}
+
+tbody tr:hover td {
+  background: var(--s2);
+}
+
+tbody tr.sel td {
+  background: var(--s3);
+}
+
+/* The keyboard focus ring is drawn inside the cells: an outline on a table row is not
+   dependable, and this follows the rounded ends. */
+tbody tr:focus-visible td {
+  box-shadow:
+    inset 0 2px 0 var(--focus),
+    inset 0 -2px 0 var(--focus);
+}
+
+tbody tr:focus-visible td:first-child {
+  box-shadow:
+    inset 0 2px 0 var(--focus),
+    inset 0 -2px 0 var(--focus),
+    inset 2px 0 0 var(--focus);
+}
+
+tbody tr:focus-visible td:last-child {
+  box-shadow:
+    inset 0 2px 0 var(--focus),
+    inset 0 -2px 0 var(--focus),
+    inset -2px 0 0 var(--focus);
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.name .icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  transition: opacity 200ms var(--ease);
+}
+
+.name .icon.placeholder {
+  border-radius: 6px;
+  background: var(--s3);
+}
+
+.name .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13.5px;
+  transition: opacity 200ms var(--ease);
+}
+
+td.app {
+  color: var(--text-2);
+}
+
+/* Status: a shape and words for every state, so colour is never the only signal. */
+.status-cell {
+  white-space: normal;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  max-width: 100%;
+  padding: 2px 8px 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.detail {
+  margin: 3px 0 0 7px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 16px;
+}
+
+tr[data-status="applied"] .badge {
+  border-color: var(--ok-line);
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+tr[data-status="unsupported"] .badge {
+  border-color: var(--warn-line);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+tr[data-status="error"] .badge {
+  border-color: var(--bad-line);
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+tr[data-status="error"] .detail {
+  color: var(--text-2);
+}
+
+/* While a change is on its way the chip is neutral: nothing is claimed yet. */
+tr[data-pending] .badge {
+  border-color: transparent;
+  background: none;
+  color: var(--text-2);
+  animation: pend 700ms ease-in-out 400ms 6 alternate; /* only if it takes a while, and it ends */
+}
+
+@keyframes pend {
+  to {
+    opacity: 0.5;
+  }
+}
+
+/* The spinner waits 400 ms and stops by itself, so nothing ever animates at idle. */
+tr[data-status="applying"] .badge svg {
+  animation: spin 0.9s linear 400ms 8;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A protected window turns into a ghost of itself. */
+tr[data-status="applied"] .icon {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+tr[data-status="applied"] .title {
+  opacity: 0.68;
+}
+
+/* Protection confirmed: a green bar on the left edge, once, then gone. */
+tr.settle td:first-child::before,
+tr.failed td:first-child::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+}
+
+tr.settle td:first-child::before {
+  background: var(--ok);
+  animation: settle 600ms var(--ease) forwards;
+}
+
+@keyframes settle {
+  from {
+    opacity: 1;
+    transform: scaleY(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* A change that was refused: the bar stays, with the message under the list, until the
+   next action. */
+tr.failed td:first-child::before {
+  background: var(--bad);
+}
+
+tr.failed .toggle {
+  border-color: var(--bad-line);
+}
+
+.shake {
+  animation: shake 240ms var(--ease);
+}
+
+@keyframes shake {
+  25% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* The pin shows when the row is under the pointer or selected, or when it is on. The
+   Protect button always shows: the protected state must never be hidden. */
+.pin {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-3);
+  opacity: 0;
+}
+
+.pin svg {
+  width: 16px;
+  height: 16px;
+}
+
+tr:hover .pin,
+tr.sel .pin,
+tr:focus-within .pin,
+.pin[aria-pressed="true"] {
+  opacity: 1;
+}
+
+.pin:hover {
+  background: var(--s3);
+  color: var(--text);
+}
+
+.pin[aria-pressed="true"] {
+  color: var(--text);
+}
+
+.pin[aria-pressed="true"] svg {
+  fill: currentColor;
+}
+
+/* Protect is the filled one, Unprotect steps back, Retry carries the problem colour. */
+.toggle {
+  min-width: 84px;
+  padding: 5px 13px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--s3);
+  color: var(--text);
+}
+
+.toggle:hover {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.toggle[data-kind="unprotect"],
+.toggle[data-kind="byapp"] {
+  border-color: var(--line);
+  background: none;
+  color: var(--text-2);
+}
+
+.toggle[data-kind="unprotect"]:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+.toggle[data-kind="retry"] {
+  border-color: var(--bad-line);
+}
+
+.empty {
+  margin: 44px 0 0;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.empty strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* Hints are quiet until the list or the search is in use. */
+.keyhints {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 14px;
-  padding: 0 10px;
+  gap: 2px 14px;
+  margin: 8px 4px 0;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 16px;
+  opacity: 0.55;
+  transition: opacity 120ms;
+}
+
+.keyhints kbd {
+  margin-right: 3px;
+}
+
+.panel:focus-within .keyhints {
+  opacity: 1;
+}
+
+.error {
+  min-height: 18px;
+  margin: 6px 4px 0;
+  color: var(--bad);
+  font-size: 12px;
+  user-select: text;
+}
+
+/* A failure in the main window is loud and stays until the next action. */
+#status:not(:empty) {
+  padding: 7px 12px;
+  border: 1px solid var(--bad-line);
+  border-radius: 10px;
+  background: var(--bad-bg);
+}
+
+/* -------------------------------------------------------------- session */
+
+.session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.session-text {
+  min-width: 0;
+}
+
+.session p {
+  margin: 3px 0 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+/* Buttons: one quiet shape, and one filled shape for the main action of a view. */
+.secondary,
+.session button,
+#banner-slot button:not(.link),
+dialog button:not(.link) {
+  flex: none;
+  padding: 7px 15px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--s2);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.secondary:hover,
+.session button:hover,
+#banner-slot button:not(.link):hover,
+dialog button:not(.link):hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.secondary {
+  height: 34px;
+  padding: 0 14px;
+  border-color: var(--line);
+  background: none;
+  color: var(--text-2);
+}
+
+.secondary:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+button.primary,
+.session button.primary,
+#banner-slot button.primary,
+dialog button.primary {
+  flex: none;
+  padding: 7px 15px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+button.primary:hover,
+.session button.primary:hover,
+#banner-slot button.primary:hover,
+dialog button.primary:hover {
+  background: #ffffff;
+}
+
+.notices {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--warn-line);
+  border-radius: 12px;
+  background: var(--warn-bg);
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.notices p {
+  margin: 0 0 4px;
+}
+
+.notices p:last-child {
+  margin-bottom: 0;
+}
+
+/* Filled by features.js; takes no room while it is empty. */
+#banner-slot:empty {
+  display: none;
+}
+
+.link {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: var(--text);
+  text-decoration-color: currentColor;
+}
+
+.link.update {
+  color: var(--ok);
+  font-weight: 600;
 }
 
 /* -------------------------------------------------------------- dialogs */
 
+/* Open: fade in and rise 6px. Close is shorter and plainer. Dialogs close through
+   method="dialog", so the browser runs the exit by itself. */
 dialog {
   width: min(520px, calc(100vw - 80px));
   max-height: calc(100vh - 80px);
   padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #131316;
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  background: var(--dialog);
   color: var(--text);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    var(--hi),
+    0 24px 48px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
   user-select: text;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition:
+    opacity 140ms,
+    transform 140ms,
+    overlay 140ms allow-discrete,
+    display 140ms allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+  transform: none;
+  transition-duration: 220ms;
+  transition-timing-function: var(--ease);
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
 }
 
 dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transition:
+    opacity 140ms,
+    overlay 140ms allow-discrete,
+    display 140ms allow-discrete;
+}
+
+dialog[open]::backdrop {
+  opacity: 1;
+  transition-duration: 220ms;
+}
+
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
 }
 
 dialog h2 {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 16px;
+  line-height: 22px;
 }
 
 dialog p {
@@ -903,7 +1256,8 @@ dialog li {
 }
 
 dialog button.danger {
-  color: var(--hidden);
+  border-color: var(--bad-line);
+  color: var(--bad);
 }
 
 .field {
@@ -916,7 +1270,7 @@ dialog button.danger {
 .field input {
   height: 36px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.3);
 }
@@ -942,6 +1296,7 @@ legend {
   padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: 12px;
+  background: var(--s1);
   overflow-y: auto;
 }
 
@@ -979,13 +1334,74 @@ legend {
   overflow-wrap: anywhere;
 }
 
+/* Settings: one card each, the label and a one-line reason on the left, the control on
+   the right. */
+.setting,
 .shortcut-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
+  gap: 16px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--s1);
+}
+
+.setting > div,
+.shortcut-row > div {
+  min-width: 0;
+}
+
+.setting label,
+.setting-label {
+  font-weight: 500;
+}
+
+.setting .note {
+  margin: 2px 0 0;
+}
+
+.setting .note:empty {
+  display: none;
+}
+
+.switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 30px;
+  height: 18px;
+  margin: 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.16);
+  transition: background-color 160ms;
+}
+
+.switch::before {
+  content: "";
+  position: absolute;
+  inset: 2px auto 2px 2px;
+  width: 14px;
+  border-radius: 50%;
+  background: var(--text-2);
+  transition:
+    transform 160ms var(--ease),
+    background-color 160ms;
+}
+
+.switch:checked {
+  background: var(--text);
+}
+
+.switch:checked::before {
+  transform: translateX(12px);
+  background: var(--ink);
+}
+
+.switch:disabled {
+  opacity: 0.5;
 }
 
 pre {
@@ -1017,6 +1433,10 @@ code {
   .sidebar {
     width: 178px;
   }
+  .hotkeys > div {
+    flex-wrap: wrap; /* the keys drop under the label when there is no room beside it */
+    row-gap: 3px;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1025,9 +1445,26 @@ code {
   }
 }
 
+/* Less motion: colour and opacity still change, nothing moves. */
 @media (prefers-reduced-motion: reduce) {
   * {
-    animation: none !important;
-    transition: none !important;
+    transition-property: opacity, color, background-color, border-color !important;
+  }
+  dialog,
+  dialog[open],
+  button:active {
+    transform: none !important;
+  }
+  .shake,
+  tr[data-status="applying"] .badge svg {
+    animation: none;
+  }
+  @keyframes settle {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 }

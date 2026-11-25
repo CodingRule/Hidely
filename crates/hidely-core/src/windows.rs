@@ -130,7 +130,8 @@ fn is_user_window(hwnd: isize) -> bool {
     }
 }
 
-fn window_title(hwnd: isize) -> Option<String> {
+/// The window's title, or `None` if it has none.
+pub fn window_title(hwnd: isize) -> Option<String> {
     let h = hwnd as HWND;
     unsafe {
         let len = GetWindowTextLengthW(h);
