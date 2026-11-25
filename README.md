@@ -216,14 +216,27 @@ Released:
 - [x] **v0.3** [Browser extension](docs/EXTENSION.md) for private tabs and sites (tested in Edge)
 - [x] **v0.3** Browser extension published on the [Chrome Web Store](https://chromewebstore.google.com/detail/hidely-for-browsers/kifbmljgdnggophdknoliofdafghkgcg)
 
+Built, coming in v0.4 (on `main`, not in a release yet):
+
+- [x] **What viewers see**: a picture of your screen as Windows screen capture returns it, with protected windows missing
+- [x] Protected windows re-checked during a session, and protected again if an app resets them
+- [x] Session summary, and an offer to start a session when a meeting app opens
+- [x] Keyboard-first window list, Ctrl+K command palette, first-run tour
+- [x] Refreshed look and clearer status wording
+
 Next:
 
 - [ ] **v0.4** Zoom, Teams, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Discord's screen share is confirmed. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
-- [ ] **v0.4** Browser extension checked in Chrome, and published in the Edge store
+- [ ] **v0.4** Browser extension checked in Chrome ([issue 14](https://github.com/CodingRule/Hidely/issues/14)), and published in the Edge store
+- [ ] **v0.5** A shortcut to protect the window you are using
+- [ ] **v0.5** Firefox version of the browser extension ([issue 17](https://github.com/CodingRule/Hidely/issues/17))
+- [ ] **v0.5** Light theme that follows Windows ([issue 8](https://github.com/CodingRule/Hidely/issues/8))
 - [ ] **v1.0** Signed installer and auto-update
 
 Not planned for now:
 
+- "Protect everything except these windows". It would mean changing every running program, which anti-cheat and antivirus software can flag.
+- Starting a session automatically. Hidely offers; it does not hide windows without you asking.
 - Optional kernel driver for protected processes. It is not built or tested; [docs/DRIVER.md](docs/DRIVER.md) explains why.
 
 ## Contributing
