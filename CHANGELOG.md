@@ -4,7 +4,7 @@ All notable changes to Hidely are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] - 2026-11-25
 
 ### Added
 
@@ -156,6 +156,7 @@ First release.
 - Screen-share test page.
 - Windows installer and portable executable.
 
+[0.4.0]: https://github.com/CodingRule/Hidely/releases/tag/v0.4.0
 [0.3.1]: https://github.com/CodingRule/Hidely/releases/tag/v0.3.1
 [0.3.0]: https://github.com/CodingRule/Hidely/releases/tag/v0.3.0
 [0.2.1]: https://github.com/CodingRule/Hidely/releases/tag/v0.2.1

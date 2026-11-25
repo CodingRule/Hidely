@@ -50,7 +50,10 @@ see the [compatibility record](docs/COMPATIBILITY.md) for what has actually been
 - **Privacy sessions.** Protection has a clear start and end. Ending a session makes every window Hidely changed capturable again.
 - **Meeting profiles.** Save sets of apps such as Work, Client demo or Streaming. Before a session starts, Hidely shows which apps it will affect and which are not running.
 - **New windows are covered.** During a session with a profile, windows those apps open later are protected too. A new window can be captured for a moment first; see [measured behaviour](docs/COMPATIBILITY.md#measured-behaviour).
-- **Honest status.** Each window is Unprotected, Applying, Protection applied, Unsupported or Error, in words and a distinct icon. "Protection applied" is only shown after Windows confirms the setting, and failures say why.
+- **Honest status.** Each window says in words what viewers get: Unprotected, Applying, Hidden from capture, or Visible to viewers with the reason. "Hidden from capture" is only shown after Windows confirms the setting.
+- **What viewers see.** A picture of your screen as Windows screen capture returns it, with protected windows missing, so you can check before you share. It is never saved or sent.
+- **Re-checked while it runs.** Hidely keeps reading back each protected window. If an app resets its protection, Hidely says so and protects it again.
+- **Keyboard first.** Arrow keys, Enter and P work the window list, and Ctrl+K lists every command.
 - **Pins and manual control.** Protect a single window at any time, or pin windows to include them when a session starts.
 - **Shortcuts you can change.** <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> starts or ends a session and <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> makes everything capturable again, by default. If a new combination is taken, the old one keeps working.
 - **Works from the tray.** Start, end and restore from the tray menu with the window closed. The tooltip says in words what is protected.
@@ -215,19 +218,13 @@ Released:
 - [x] **v0.3** Settings: start with Windows, update check, remembered window position
 - [x] **v0.3** [Browser extension](docs/EXTENSION.md) for private tabs and sites (tested in Edge)
 - [x] **v0.3** Browser extension published on the [Chrome Web Store](https://chromewebstore.google.com/detail/hidely-for-browsers/kifbmljgdnggophdknoliofdafghkgcg)
-
-Built, coming in v0.4 (on `main`, not in a release yet):
-
-- [x] **What viewers see**: a picture of your screen as Windows screen capture returns it, with protected windows missing
-- [x] Protected windows re-checked during a session, and protected again if an app resets them
-- [x] Session summary, and an offer to start a session when a meeting app opens
-- [x] Keyboard-first window list, Ctrl+K command palette, first-run tour
-- [x] Refreshed look and clearer status wording
+- [x] **v0.4** What viewers see, re-checked protection, session summary, meeting app offer
+- [x] **v0.4** Keyboard-first window list, Ctrl+K command palette, first-run tour, refreshed look
 
 Next:
 
-- [ ] **v0.4** Zoom, Teams, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Discord's screen share is confirmed. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
-- [ ] **v0.4** Browser extension checked in Chrome ([issue 14](https://github.com/CodingRule/Hidely/issues/14)), and published in the Edge store
+- [ ] **v0.5** Zoom, Teams, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Discord's screen share is confirmed. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
+- [ ] **v0.5** Browser extension checked in Chrome ([issue 14](https://github.com/CodingRule/Hidely/issues/14)), and published in the Edge store
 - [ ] **v0.5** A shortcut to protect the window you are using
 - [ ] **v0.5** Firefox version of the browser extension ([issue 17](https://github.com/CodingRule/Hidely/issues/17))
 - [ ] **v0.5** Light theme that follows Windows ([issue 8](https://github.com/CodingRule/Hidely/issues/8))
