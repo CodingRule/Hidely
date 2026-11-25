@@ -26,7 +26,10 @@ wrong, and the popup says what in words.
 ## Setting it up
 
 1. In Hidely, open **Settings** and switch on **Connect Chrome and Edge**.
-2. Install the extension. Until it is in the browser stores, load it by hand:
+2. Install the extension from the
+   [Chrome Web Store](https://chromewebstore.google.com/detail/hidely-for-browsers/kifbmljgdnggophdknoliofdafghkgcg).
+   In Edge, the same page works once you press **Allow extensions from other stores**.
+   Or load it by hand:
    1. Download `hidely-extension_x.y.z.zip` from the
       [latest release](https://github.com/CodingRule/Hidely/releases/latest) and unzip it
       somewhere it can stay. (Or use the `extension/` folder of this repository.)
