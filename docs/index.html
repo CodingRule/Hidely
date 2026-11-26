@@ -306,8 +306,10 @@ ret                    <span class="c">; BOOL -> exit code</span></code></pre>
           <div>
             <h3><span class="dot ok-dot" aria-hidden="true"></span>Confirmed</h3>
             <ul>
-              <li>Discord screen share, entire screen</li>
-              <li>Chrome and Edge screen sharing, entire screen</li>
+              <li>Zoom, Microsoft Teams, Discord and Google Meet</li>
+              <li>OBS Studio</li>
+              <li>Chrome, Edge and Firefox screen sharing</li>
+              <li>Snipping Tool and Print Screen</li>
               <li>Windows' own capture methods: GDI, Desktop Duplication, Windows Graphics Capture</li>
               <li>32-bit and 64-bit apps</li>
             </ul>
@@ -315,8 +317,9 @@ ret                    <span class="c">; BOOL -> exit code</span></code></pre>
           <div>
             <h3><span class="dot open-dot" aria-hidden="true"></span>Not checked yet</h3>
             <ul>
-              <li>Zoom, Teams and OBS</li>
-              <li>Firefox, and Windows 10</li>
+              <li>Windows 10</li>
+              <li>Sharing a single window in each meeting app</li>
+              <li>Other versions of each app than the one checked</li>
               <li><a href="https://github.com/CodingRule/Hidely/issues/1">Help test one</a> in ten minutes</li>
             </ul>
           </div>
@@ -376,7 +379,7 @@ ret                    <span class="c">; BOOL -> exit code</span></code></pre>
         </details>
         <details>
           <summary>Does it work with Zoom, Teams, Discord or OBS?</summary>
-          <p>It depends on how each app captures the screen, so it's tested app by app. Discord's entire-screen share and Chrome and Edge screen sharing are confirmed. Zoom, Teams and OBS haven't been checked yet; the test above lets you check your own setup.</p>
+          <p>Yes, in the versions checked. Zoom, Teams, Discord, Google Meet, OBS, Firefox, Chrome and Edge all left the protected window out on Windows 11, and so did Snipping Tool and Print Screen. Apps change how they capture between versions, so the <a href="https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md">compatibility record</a> lists each version, and the test above lets you check your own setup.</p>
         </details>
         <details>
           <summary>Is anything still visible to viewers?</summary>

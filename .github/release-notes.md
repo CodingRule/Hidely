@@ -14,7 +14,7 @@ The full list is in the [changelog](https://github.com/CodingRule/Hidely/blob/ma
 
 ## Please read before relying on it
 
-- **Check your meeting app first.** Discord's screen share and screen sharing in Chrome and Edge are confirmed; Zoom, Teams, OBS and Firefox have not been checked yet. Use the [test page](https://codingrule.github.io/Hidely/) and your app's own preview. The [compatibility record](https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md) lists what has been tested.
+- **Check your meeting app first.** Zoom, Teams, Discord, Google Meet, OBS, Firefox, Chrome and Edge are confirmed on Windows 11, each in one version; Windows 10 has not been checked yet. Use the [test page](https://codingrule.github.io/Hidely/) and your app's own preview. The [compatibility record](https://github.com/CodingRule/Hidely/blob/main/docs/COMPATIBILITY.md) lists what has been tested.
 - **"What viewers see" shows what Windows returns.** A meeting app can capture differently, so the test page is still the check for a real share.
 - **A private tab can be seen for a moment** when you switch to it, before the window is protected.
 - **Don't use it on games with anti-cheat** such as Roblox. The change is blocked there and it could flag your account.

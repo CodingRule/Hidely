@@ -35,19 +35,24 @@ working because another app that uses the same method is.
 | 11 25H2 (26200.9974) | Google Chrome 157.0.8103.80, `getDisplayMedia` | Entire screen | Protected window absent; visible again after restoring | 2026-11-23, automated |
 | 11 25H2 (26200.9974) | Microsoft Edge 158.0.4370.33, `getDisplayMedia` | Entire screen | Protected window absent; visible again after restoring | 2026-11-23, automated |
 | any | Chrome or Edge, `getDisplayMedia` | Single window, or browser tab | **Untested** | |
-| any | Mozilla Firefox, `getDisplayMedia` | Any | **Untested** | |
-| any | Google Meet (runs in the browser) | Any | **Untested** in a real meeting | |
-| any | Zoom | Any | **Untested** | |
-| any | Microsoft Teams | Any | **Untested** | |
+| 11 25H2 (26200.9974) | Mozilla Firefox 161.0, `getDisplayMedia` | Not recorded | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Google Meet (browser not recorded) | Not recorded | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Zoom Workplace 7.1.9 (48550) | Not recorded | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Microsoft Teams 26304.1207.5384.858 | Not recorded | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
 | 11 26H2 (26300.9974) | Discord stable 679963, host 1.0.9269 | Entire screen | Protected window absent | 2026-11-24, reported by hu-ja-ja in [issue 10](https://github.com/CodingRule/Hidely/issues/10), Hidely 0.2.1 |
+| 11 25H2 (26200.9974) | Discord 1.0.9270 | Not recorded | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
 | any | Discord | Single window, or Go Live on an app | **Untested** | |
-| any | OBS Studio | Display, window and game capture | **Untested** | |
-| any | Snipping Tool, Print Screen | Screenshot and recording | **Untested** | |
+| 11 25H2 (26200.9974) | OBS Studio 30.1.2 | Not recorded | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Snipping Tool 11.2609.15.0 | Screenshot | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Print Screen key | Screenshot | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| any | Snipping Tool | Screen recording | **Untested** | |
 | 10 (any) | Any | Any | **Untested** | |
 
 Zoom, Teams, Discord and OBS each use one or more of the capture methods above, but which
-one depends on the app's version and settings. They stay Untested until someone checks the
-app's own preview.
+one depends on the app's version and settings. For the rows checked on 2026-11-26 the capture
+mode (entire screen, a single window, or which OBS source) was not written down, and the
+versions are the ones installed on the test PC that day. A report that names the mode is
+welcome and will replace "Not recorded".
 
 ## Browser extension
 

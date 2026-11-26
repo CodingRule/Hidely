@@ -197,7 +197,7 @@ driver/              DWMShield kernel driver (optional, not built; see below)
 
 ## Limits you should know about
 
-- **Not every app has been tested.** The three main Windows capture methods and screen sharing in Chrome and Edge are confirmed; Zoom, Teams, Discord and OBS are not yet. The [compatibility record](docs/COMPATIBILITY.md) lists exactly what was checked and how. Treat anything else as unknown until you have looked at it yourself.
+- **Not every app has been tested.** The three main Windows capture methods and screen sharing in Chrome and Edge are confirmed; so are Zoom, Teams, Discord, OBS, Google Meet, Firefox, Snipping Tool and Print Screen, each in one version on Windows 11. Windows 10 is not yet. The [compatibility record](docs/COMPATIBILITY.md) lists exactly what was checked and how. Treat anything else as unknown until you have looked at it yourself.
 - **A new window can be seen briefly.** During a session, a window an app opens can appear in a capture for a moment before Hidely protects it (0 to 139 ms in our measurements).
 - **Don't use it on games with anti-cheat.** Hidely has to run a call inside the app it protects, and anti-cheat software treats that as tampering. It may block the change (Hidely then shows an Error), and it could flag your account. Roblox blocked it in our one observation.
 - **Apps running as administrator need Hidely to be too.** Hidely reports them as an Error otherwise. Use **Restart as administrator** at the bottom left; Windows will ask you to approve.
@@ -223,7 +223,7 @@ Released:
 
 Next:
 
-- [ ] **v0.5** Zoom, Teams, OBS and Firefox checked for the [compatibility record](docs/COMPATIBILITY.md). Discord's screen share is confirmed. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
+- [ ] **v0.5** Windows 10, and each meeting app's single-window mode, checked for the [compatibility record](docs/COMPATIBILITY.md). Zoom, Teams, Discord, OBS, Google Meet and Firefox are confirmed on Windows 11. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
 - [ ] **v0.5** Browser extension checked in Chrome ([issue 14](https://github.com/CodingRule/Hidely/issues/14)), and published in the Edge store
 - [ ] **v0.5** A shortcut to protect the window you are using
 - [ ] **v0.5** Firefox version of the browser extension ([issue 17](https://github.com/CodingRule/Hidely/issues/17))

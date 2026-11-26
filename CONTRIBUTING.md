@@ -6,8 +6,8 @@ Thanks for wanting to help. Bug reports, ideas and pull requests are all welcome
 
 You don't need to know Rust, or even write code, to help:
 
-- **Test an app you already use.** Zoom, Teams, Discord, OBS and Firefox have not been checked
-  yet. It takes about ten minutes with the test window, and each result becomes a row in the
+- **Test an app you already use.** Windows 10, single-window sharing, and other versions of
+  Zoom, Teams, Discord and OBS have not been checked yet. It takes about ten minutes with the test window, and each result becomes a row in the
   [compatibility record](docs/COMPATIBILITY.md). Open a
   [compatibility report](https://github.com/CodingRule/Hidely/issues/new?template=compatibility_report.yml).
 - **Pick a [good first issue](https://github.com/CodingRule/Hidely/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).**
