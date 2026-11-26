@@ -223,7 +223,7 @@ Released:
 
 Next:
 
-- [ ] **v0.5** Windows 10, and each meeting app's single-window mode, checked for the [compatibility record](docs/COMPATIBILITY.md). Zoom, Teams, Discord, OBS, Google Meet and Firefox are confirmed on Windows 11. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
+- [ ] **v0.5** Windows 10, and OBS game capture, checked for the [compatibility record](docs/COMPATIBILITY.md). Zoom, Teams, Discord, OBS, Google Meet and Firefox are confirmed on Windows 11. Help wanted: [issue 1](https://github.com/CodingRule/Hidely/issues/1)
 - [ ] **v0.5** Browser extension checked in Chrome ([issue 14](https://github.com/CodingRule/Hidely/issues/14)), and published in the Edge store
 - [ ] **v0.5** A shortcut to protect the window you are using
 - [ ] **v0.5** Firefox version of the browser extension ([issue 17](https://github.com/CodingRule/Hidely/issues/17))

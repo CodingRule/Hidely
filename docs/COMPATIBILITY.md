@@ -35,26 +35,24 @@ working because another app that uses the same method is.
 | 11 25H2 (26200.9974) | Google Chrome 157.0.8103.80, `getDisplayMedia` | Entire screen | Protected window absent; visible again after restoring | 2026-11-23, automated |
 | 11 25H2 (26200.9974) | Microsoft Edge 158.0.4370.33, `getDisplayMedia` | Entire screen | Protected window absent; visible again after restoring | 2026-11-23, automated |
 | any | Chrome or Edge, `getDisplayMedia` | Single window, or browser tab | **Untested** | |
-| 11 25H2 (26200.9974) | Mozilla Firefox 161.0, `getDisplayMedia` | Entire screen | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
-| 11 25H2 (26200.9974) | Google Meet (browser not recorded) | Entire screen | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
-| 11 25H2 (26200.9974) | Zoom Workplace 7.1.9 (48550) | Entire screen | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
-| 11 25H2 (26200.9974) | Microsoft Teams 26304.1207.5384.858 | Entire screen | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Mozilla Firefox 161.0, `getDisplayMedia` | Entire screen, and a single window | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Google Meet (browser not recorded) | Entire screen, and a single window | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Zoom Workplace 7.1.9 (48550) | Entire screen, and a single window | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Microsoft Teams 26304.1207.5384.858 | Entire screen, and a single window | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
 | 11 26H2 (26300.9974) | Discord stable 679963, host 1.0.9269 | Entire screen | Protected window absent | 2026-11-24, reported by hu-ja-ja in [issue 10](https://github.com/CodingRule/Hidely/issues/10), Hidely 0.2.1 |
-| 11 25H2 (26200.9974) | Discord 1.0.9270 | Entire screen | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
-| any | Discord | Single window, or Go Live on an app | **Untested** | |
-| 11 25H2 (26200.9974) | OBS Studio 30.1.2 | Display capture (entire screen) | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| 11 25H2 (26200.9974) | Discord 1.0.9270 | Entire screen, and a single window | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
+| any | Discord | Go Live on a game | **Untested** | |
+| 11 25H2 (26200.9974) | OBS Studio 30.1.2 | Display capture and window capture | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
 | 11 25H2 (26200.9974) | Snipping Tool 11.2609.15.0 | Screenshot | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
 | 11 25H2 (26200.9974) | Print Screen key | Screenshot | Protected window absent | 2026-11-26, by the maintainer, Hidely 0.4.0 |
-| any | Zoom, Teams, Google Meet, Firefox | Single window | **Untested** | |
-| any | OBS Studio | Window and game capture | **Untested** | |
+| any | OBS Studio | Game capture | **Untested** | |
 | any | Snipping Tool | Screen recording | **Untested** | |
 | 10 (any) | Any | Any | **Untested** | |
 
 Zoom, Teams, Discord and OBS each use one or more of the capture methods above, but which
-one depends on the app's version and settings. The rows checked on 2026-11-26 shared the entire screen; sharing a
-single window, and OBS's window and game capture, are still unchecked. The versions are the
-ones installed on the test PC that day, and the browser used for Google Meet was not written
-down.
+one depends on the app's version and settings. The rows checked on 2026-11-26 were tried both ways: sharing the
+entire screen, and sharing a single window. The versions are the ones installed on the test PC
+that day, and the browser used for Google Meet was not written down.
 
 ## Browser extension
 
